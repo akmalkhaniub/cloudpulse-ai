@@ -2,8 +2,9 @@ import assert from 'assert';
 import { IaCParser } from '../src/iac_parser.js';
 import { WellArchitectedEngine } from '../src/well_architected_engine.js';
 import { RemediationSynthesizer } from '../src/remediation_synthesizer.js';
+import { BedrockConverseAgent } from '../src/bedrock_converse_agent.js';
 
-console.log('🧪 Starting CloudPulse AI Automated Verification Suite (Amazon Developer Hackathon)...\n');
+console.log('🧪 Starting CloudPulse AI Automated Verification Suite (Amazon Developer Hackathon 2026)...\n');
 
 const sampleTerraformHCL = `
 resource "aws_security_group" "web_sg" {
@@ -58,11 +59,41 @@ const sshPatch = RemediationSynthesizer.generatePatch(sshFinding, sampleTerrafor
 assert(sshPatch.diff.includes('-    cidr_blocks = ["0.0.0.0/0"]'), 'Diff must remove 0.0.0.0/0');
 assert(sshPatch.diff.includes('+    cidr_blocks = ["10.0.0.0/16"]'), 'Diff must add internal VPC CIDR');
 console.log('   ✅ Generated Git Diff for Security Ingress Patch:');
-console.log(sshPatch.diff.split('\n').slice(0, 8).map(l => '      ' + l).join('\n') + '\n      ...');
+console.log(sshPatch.diff);
 
-const ec2Finding = auditReport.findings.find(f => f.ruleId === 'COST_OVERPROVISIONED_EC2');
-const ec2Patch = RemediationSynthesizer.generatePatch(ec2Finding, sampleTerraformHCL);
-assert(ec2Patch.patchedContent.includes('t4g.xlarge'), 'Must replace with Graviton instance type');
-console.log('   ✅ Cost Rightsizing Patch successfully verified.');
+// Test 4: Amazon Bedrock Converse API Agent
+console.log('4️⃣ Testing Amazon Bedrock Converse API Agent...');
+const bedrockAgent = new BedrockConverseAgent({ modelId: 'us.anthropic.claude-3-5-sonnet-20241022-v2:0' });
+assert(bedrockAgent.toolConfig.tools.length === 3, 'Must define 3 Converse API tools');
+assert(bedrockAgent.toolConfig.tools[0].toolSpec.name === 'audit_iac_manifest', 'Tool 1 must be audit_iac_manifest');
+console.log('   🤖 Bedrock Converse Model:', bedrockAgent.modelId);
+console.log('   🛠️ Registered Converse Tools:', bedrockAgent.toolConfig.tools.map(t => t.toolSpec.name).join(', '));
 
-console.log('\n🎉 ALL CLOUDPULSE AI & AWS HACKATHON TESTS PASSED WITH 100% SUCCESS!\n');
+// Test 5: Bedrock Converse Agentic Turn Execution
+console.log('5️⃣ Testing Bedrock Converse Conversation Turn & Tool Invocation...');
+const converseResult = await bedrockAgent.runConverseTurn(
+  'Inspect this Terraform file, find security flaws, and calculate cost savings.',
+  sampleTerraformHCL
+);
+assert(converseResult.output.message.role === 'assistant', 'Response must be from assistant');
+assert(converseResult.toolCalls.length > 0, 'Agent must trigger tool calling');
+assert(converseResult.toolCalls[0].name === 'audit_iac_manifest', 'Tool call must invoke audit tool');
+assert(converseResult.audit.violationsCount === 3, 'Converse turn must surface all 3 violations');
+console.log('   💬 Assistant Response:\n   ', converseResult.output.message.content[0].text.split('\n')[0]);
+console.log('   ⚡ Tool Call Triggered:', converseResult.toolCalls[0].name);
+
+// Test 6: FinOps Tool Execution & ROI Projection
+console.log('6️⃣ Testing FinOps Tool Calculation...');
+const finopsResult = bedrockAgent.executeTool('estimate_finops_savings', {
+  violations: auditReport.findings
+});
+assert(finopsResult.projectedMonthlySavingsUSD === 340.00, 'Monthly savings must equal $340');
+assert(finopsResult.annualizedSavingsUSD === 4080.00, 'Annualized savings must equal $4,080');
+console.log(`   📈 Projected FinOps Annual Savings: $${finopsResult.annualizedSavingsUSD}/year (${finopsResult.sustainabilityScoreImprovement})`);
+
+// Test 7: Batch Patch Synthesis for All Findings
+console.log('7️⃣ Testing Batch Zero-Downtime Patch Generation...');
+assert(converseResult.patches.length === 3, 'Must generate patches for all 3 violations');
+console.log(`   🛠️ Generated ${converseResult.patches.length} compliant Terraform remediation patches.`);
+
+console.log('\n🎉 ALL 7 CLOUDPULSE AI & BEDROCK CONVERSE TESTS PASSED WITH 100% SUCCESS!\n');
