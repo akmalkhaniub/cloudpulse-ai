@@ -1,0 +1,27 @@
+{
+  "name": "cloudpulse-ai",
+  "version": "1.0.0",
+  "description": "Autonomous Cloud Architecture & Cost Sentinel for Amazon Developer Hackathon",
+  "main": "src/iac_parser.js",
+  "type": "module",
+  "scripts": {
+    "test": "node test/verify_cloudpulse.js",
+    "start": "node test/verify_cloudpulse.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "aws",
+    "cloud",
+    "terraform",
+    "cdk",
+    "well-architected",
+    "bedrock",
+    "finops",
+    "devops"
+  ],
+  "author": "Antigravity Builder",
+  "license": "MIT"
+}
