@@ -1,0 +1,36 @@
+version: 1.0
+runtime: custom
+build:
+  commands:
+    build:
+      - echo "Building CloudPulse AI for AWS App Runner..."
+run:
+  runtime-version: custom
+  command: node src/server.js
+  network:
+    port: 3002
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: AWS_REGION
+      value: us-east-1
+    - name: BEDROCK_MODEL_ID
+      value: anthropic.claude-3-5-sonnet-20241022-v2:0
+
+service:
+  serviceName: cloudpulse-ai
+  instanceConfiguration:
+    cpu: "1 vCPU"
+    memory: "2 GB"
+  healthCheckConfiguration:
+    protocol: HTTP
+    path: /api/health
+    interval: 10
+    timeout: 5
+    healthyThreshold: 1
+    unhealthyThreshold: 3
+  autoScalingConfiguration:
+    minSize: 1
+    maxSize: 5
+    maxConcurrency: 100

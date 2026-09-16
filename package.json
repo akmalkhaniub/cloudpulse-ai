@@ -5,8 +5,15 @@
   "main": "src/iac_parser.js",
   "type": "module",
   "scripts": {
+    "start": "node src/server.js",
     "test": "node test/verify_cloudpulse.js",
-    "start": "node test/verify_cloudpulse.js"
+    "docker:build": "docker build -t cloudpulse-ai:latest .",
+    "docker:run": "docker run -d -p 3002:3002 --name cloudpulse-ai cloudpulse-ai:latest",
+    "docker:compose": "docker compose up -d",
+    "deploy:aws": "sh deploy/aws/deploy.sh",
+    "deploy:gcp": "sh deploy/gcp/deploy.sh",
+    "deploy:azure": "sh deploy/azure/deploy.sh",
+    "deploy:k8s": "kubectl apply -k deploy/k8s/"
   },
   "dependencies": {
     "dotenv": "^16.4.7"
