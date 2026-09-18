@@ -1,5 +1,6 @@
 # ☁️ CloudPulse AI — Autonomous AWS Well-Architected & FinOps Agent
 
+[![TypeScript: strict](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)](https://www.typescriptlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![AWS Bedrock: Converse API](https://img.shields.io/badge/Amazon%20Bedrock-Converse%20API-orange.svg)](https://aws.amazon.com/bedrock/)
 [![Model: Claude 3.5 Sonnet v2](https://img.shields.io/badge/Model-Claude%203.5%20Sonnet%20v2-purple.svg)](https://anthropic.com)

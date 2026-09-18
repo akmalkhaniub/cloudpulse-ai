@@ -10,7 +10,7 @@ const sampleTerraformHCL = `
 resource "aws_security_group" "web_sg" {
   name        = "web-server-sg"
   description = "Security group with open inbound SSH"
-  
+
   ingress {
     from_port   = 22
     to_port     = 22
@@ -32,66 +32,47 @@ resource "aws_instance" "batch_processor" {
 }
 `.trim();
 
-// Test 1: HCL Ingestion & Parsing
 console.log('1️⃣ Testing HCL Manifest Parsing...');
 const resources = IaCParser.parse(sampleTerraformHCL);
 assert(resources.length === 3, `Expected 3 resources, parsed ${resources.length}`);
-assert(resources.some(r => r.type === 'aws_security_group'), 'Should parse security group');
-assert(resources.some(r => r.type === 'aws_db_instance'), 'Should parse RDS instance');
-assert(resources.some(r => r.type === 'aws_instance'), 'Should parse EC2 instance');
+assert(resources.some((r) => r.type === 'aws_security_group'), 'Should parse security group');
+assert(resources.some((r) => r.type === 'aws_db_instance'), 'Should parse RDS instance');
+assert(resources.some((r) => r.type === 'aws_instance'), 'Should parse EC2 instance');
 console.log(`   ✅ Parsed ${resources.length} resources into DAG nodes successfully.`);
 
-// Test 2: Well-Architected Rule Auditing
 console.log('2️⃣ Testing AWS Well-Architected Rule Audit Engine...');
 const auditReport = WellArchitectedEngine.audit(resources);
 assert(auditReport.violationsCount === 3, `Expected 3 violations, found ${auditReport.violationsCount}`);
-assert(auditReport.totalMonthlySavingsUSD === 340.00, `Expected $340 savings, got ${auditReport.totalMonthlySavingsUSD}`);
-console.log(`   🚨 Detected ${auditReport.violationsCount} violations:`);
-for (const finding of auditReport.findings) {
-  console.log(`      [${finding.severity}] ${finding.pillar} - ${finding.title} (${finding.resourceId})`);
-}
+assert(auditReport.totalMonthlySavingsUSD === 340.0, `Expected $340 savings, got ${auditReport.totalMonthlySavingsUSD}`);
 console.log(`   💰 Total Projected Monthly Cost Reduction: $${auditReport.totalMonthlySavingsUSD}/month`);
 
-// Test 3: Remediation Patch Synthesis
 console.log('3️⃣ Testing Automated Remediation Patch Synthesis...');
-const sshFinding = auditReport.findings.find(f => f.ruleId === 'SEC_OPEN_SSH_INGRESS');
+const sshFinding = auditReport.findings.find((f) => f.ruleId === 'SEC_OPEN_SSH_INGRESS')!;
 const sshPatch = RemediationSynthesizer.generatePatch(sshFinding, sampleTerraformHCL);
 assert(sshPatch.diff.includes('-    cidr_blocks = ["0.0.0.0/0"]'), 'Diff must remove 0.0.0.0/0');
 assert(sshPatch.diff.includes('+    cidr_blocks = ["10.0.0.0/16"]'), 'Diff must add internal VPC CIDR');
-console.log('   ✅ Generated Git Diff for Security Ingress Patch:');
-console.log(sshPatch.diff);
+console.log('   ✅ Generated Git Diff for Security Ingress Patch.');
 
-// Test 4: Amazon Bedrock Converse API Agent
 console.log('4️⃣ Testing Amazon Bedrock Converse API Agent...');
 const bedrockAgent = new BedrockConverseAgent({ modelId: 'us.anthropic.claude-3-5-sonnet-20241022-v2:0' });
 assert(bedrockAgent.toolConfig.tools.length === 3, 'Must define 3 Converse API tools');
 assert(bedrockAgent.toolConfig.tools[0].toolSpec.name === 'audit_iac_manifest', 'Tool 1 must be audit_iac_manifest');
 console.log('   🤖 Bedrock Converse Model:', bedrockAgent.modelId);
-console.log('   🛠️ Registered Converse Tools:', bedrockAgent.toolConfig.tools.map(t => t.toolSpec.name).join(', '));
 
-// Test 5: Bedrock Converse Agentic Turn Execution
 console.log('5️⃣ Testing Bedrock Converse Conversation Turn & Tool Invocation...');
-const converseResult = await bedrockAgent.runConverseTurn(
-  'Inspect this Terraform file, find security flaws, and calculate cost savings.',
-  sampleTerraformHCL
-);
+const converseResult = await bedrockAgent.runConverseTurn('Inspect this Terraform file, find security flaws, and calculate cost savings.', sampleTerraformHCL);
 assert(converseResult.output.message.role === 'assistant', 'Response must be from assistant');
 assert(converseResult.toolCalls.length > 0, 'Agent must trigger tool calling');
 assert(converseResult.toolCalls[0].name === 'audit_iac_manifest', 'Tool call must invoke audit tool');
 assert(converseResult.audit.violationsCount === 3, 'Converse turn must surface all 3 violations');
-console.log('   💬 Assistant Response:\n   ', converseResult.output.message.content[0].text.split('\n')[0]);
 console.log('   ⚡ Tool Call Triggered:', converseResult.toolCalls[0].name);
 
-// Test 6: FinOps Tool Execution & ROI Projection
 console.log('6️⃣ Testing FinOps Tool Calculation...');
-const finopsResult = bedrockAgent.executeTool('estimate_finops_savings', {
-  violations: auditReport.findings
-});
-assert(finopsResult.projectedMonthlySavingsUSD === 340.00, 'Monthly savings must equal $340');
-assert(finopsResult.annualizedSavingsUSD === 4080.00, 'Annualized savings must equal $4,080');
-console.log(`   📈 Projected FinOps Annual Savings: $${finopsResult.annualizedSavingsUSD}/year (${finopsResult.sustainabilityScoreImprovement})`);
+const finopsResult = bedrockAgent.executeTool('estimate_finops_savings', { violations: auditReport.findings }) as any;
+assert(finopsResult.projectedMonthlySavingsUSD === 340.0, 'Monthly savings must equal $340');
+assert(finopsResult.annualizedSavingsUSD === 4080.0, 'Annualized savings must equal $4,080');
+console.log(`   📈 Projected FinOps Annual Savings: $${finopsResult.annualizedSavingsUSD}/year`);
 
-// Test 7: Batch Patch Synthesis for All Findings
 console.log('7️⃣ Testing Batch Zero-Downtime Patch Generation...');
 assert(converseResult.patches.length === 3, 'Must generate patches for all 3 violations');
 console.log(`   🛠️ Generated ${converseResult.patches.length} compliant Terraform remediation patches.`);

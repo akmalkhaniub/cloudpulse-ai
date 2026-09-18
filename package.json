@@ -2,11 +2,19 @@
   "name": "cloudpulse-ai",
   "version": "1.0.0",
   "description": "Autonomous Cloud Architecture & Cost Sentinel for Amazon Developer Hackathon",
-  "main": "src/iac_parser.js",
+  "main": "dist/iac_parser.js",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "start": "node src/server.js",
-    "test": "node test/verify_cloudpulse.js",
+    "build": "tsc && node scripts/copy-public.mjs",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "test": "npm run typecheck && tsx test/verify_cloudpulse.ts && tsx test/server_integration.ts",
+    "test:unit": "tsx test/verify_cloudpulse.ts",
+    "test:integration": "tsx test/server_integration.ts",
     "docker:build": "docker build -t cloudpulse-ai:latest .",
     "docker:run": "docker run -d -p 3002:3002 --name cloudpulse-ai cloudpulse-ai:latest",
     "docker:compose": "docker compose up -d",
@@ -17,9 +25,9 @@
     "tunnel": "powershell -ExecutionPolicy Bypass -File deploy/free/tunnel.ps1"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1135.0",
     "dotenv": "^16.4.7"
   },
-  "devDependencies": {},
   "keywords": [
     "aws",
     "cloud",
@@ -31,5 +39,10 @@
     "devops"
   ],
   "author": "Antigravity Builder",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
+  }
 }

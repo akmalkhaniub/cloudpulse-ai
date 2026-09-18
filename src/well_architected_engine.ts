@@ -2,8 +2,40 @@
  * AWS Well-Architected Framework Rule Engine
  * Evaluates cloud resources against Security, Cost Optimization, and Reliability pillars.
  */
+import type { CloudResource } from './iac_parser.js';
 
-export const RULES = [
+export type Pillar = 'SECURITY' | 'COST_OPTIMIZATION' | 'RELIABILITY';
+export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+
+export interface Rule {
+  id: string;
+  pillar: Pillar;
+  severity: Severity;
+  title: string;
+  description: string;
+  check: (resource: CloudResource, allResources: CloudResource[]) => boolean;
+  monthlySavingsUSD: number;
+}
+
+export interface Finding {
+  ruleId: string;
+  pillar: Pillar;
+  severity: Severity;
+  title: string;
+  description: string;
+  resourceId: string;
+  resourceType: string;
+  monthlySavingsUSD: number;
+}
+
+export interface AuditReport {
+  totalResourcesScanned: number;
+  violationsCount: number;
+  totalMonthlySavingsUSD: number;
+  findings: Finding[];
+}
+
+export const RULES: Rule[] = [
   {
     id: 'SEC_PUBLIC_S3',
     pillar: 'SECURITY',
@@ -29,9 +61,7 @@ export const RULES = [
     check: (resource) => {
       if (resource.type === 'aws_security_group') {
         const raw = resource.rawBody || '';
-        if (raw.includes('0.0.0.0/0') && (raw.includes('22') || raw.includes('3389'))) {
-          return true;
-        }
+        if (raw.includes('0.0.0.0/0') && (raw.includes('22') || raw.includes('3389'))) return true;
       }
       return false;
     },
@@ -43,12 +73,7 @@ export const RULES = [
     severity: 'HIGH',
     title: 'Unencrypted RDS Database Instance',
     description: 'RDS database instance lacks KMS at-rest storage encryption.',
-    check: (resource) => {
-      if (resource.type === 'aws_db_instance') {
-        return resource.properties.storage_encrypted !== true;
-      }
-      return false;
-    },
+    check: (resource) => resource.type === 'aws_db_instance' && resource.properties.storage_encrypted !== true,
     monthlySavingsUSD: 0
   },
   {
@@ -60,13 +85,11 @@ export const RULES = [
     check: (resource) => {
       if (resource.type === 'aws_instance') {
         const type = resource.properties.instance_type;
-        if (typeof type === 'string' && (type.includes('4xlarge') || type.includes('8xlarge'))) {
-          return true;
-        }
+        if (typeof type === 'string' && (type.includes('4xlarge') || type.includes('8xlarge'))) return true;
       }
       return false;
     },
-    monthlySavingsUSD: 340.00
+    monthlySavingsUSD: 340.0
   },
   {
     id: 'COST_ORPHANED_EBS_VOLUME',
@@ -76,26 +99,21 @@ export const RULES = [
     description: 'Unattached io2 / gp3 storage volume provisioned without instance attachment.',
     check: (resource, allResources) => {
       if (resource.type === 'aws_ebs_volume') {
-        // Check if referenced in any aws_volume_attachment
-        const isAttached = allResources.some(r => 
-          r.type === 'aws_volume_attachment' && (r.rawBody || '').includes(resource.name)
+        const isAttached = allResources.some(
+          (r) => r.type === 'aws_volume_attachment' && (r.rawBody || '').includes(resource.name)
         );
         return !isAttached;
       }
       return false;
     },
-    monthlySavingsUSD: 65.00
+    monthlySavingsUSD: 65.0
   }
 ];
 
 export class WellArchitectedEngine {
-  /**
-   * Run all security and cost rules against parsed resources
-   * @param {Array<Object>} resources 
-   * @returns {Object} audit report with findings and cost projections
-   */
-  static audit(resources) {
-    const findings = [];
+  /** Run all security and cost rules against parsed resources. */
+  static audit(resources: CloudResource[]): AuditReport {
+    const findings: Finding[] = [];
     let totalMonthlySavingsUSD = 0;
 
     for (const resource of resources) {
@@ -116,11 +134,6 @@ export class WellArchitectedEngine {
       }
     }
 
-    return {
-      totalResourcesScanned: resources.length,
-      violationsCount: findings.length,
-      totalMonthlySavingsUSD,
-      findings
-    };
+    return { totalResourcesScanned: resources.length, violationsCount: findings.length, totalMonthlySavingsUSD, findings };
   }
 }

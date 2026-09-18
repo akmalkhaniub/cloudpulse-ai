@@ -1,6 +1,8 @@
 # Technical Specification: CloudPulse AI
 **Project Name:** CloudPulse AI (Amazon Developer Hackathon)  
-**Status:** Draft / Ready for Implementation  
+**Status:** Prototype implemented — spec is target design (updated 2026-09-18)  
+
+> **Implementation status (2026-09-18):** The sections below describe the *target* architecture. Currently built: a Node.js/Express prototype with the IaC parser, Well-Architected rule engine, a **mock-backed** Bedrock converse agent, and a remediation synthesizer (589 LOC, 7 passing tests). Not yet built: live Bedrock SDK calls, the GitHub remediation-PR bot, and the Next.js/React-Flow topology dashboard (currently a static HTML page).
 **Version:** 1.0.0  
 
 ---

@@ -1,15 +1,24 @@
 /**
- * RemediationSynthesizer - Generates unified Git patch diffs and pull requests for detected violations.
+ * RemediationSynthesizer - Generates unified Git patch diffs for detected violations.
  */
 
+export interface FindingLike {
+  ruleId: string;
+  resourceId?: string;
+  targetProp?: string;
+}
+
+export interface RemediationPatch {
+  ruleId: string;
+  resourceId?: string;
+  description: string;
+  diff: string;
+  patchedContent: string;
+}
+
 export class RemediationSynthesizer {
-  /**
-   * Synthesize a precise code patch diff for a given violation
-   * @param {Object} finding 
-   * @param {string} originalSource 
-   * @returns {Object} synthesized patch with Git diff and PR description
-   */
-  static generatePatch(finding, originalSource) {
+  /** Synthesize a precise code patch diff for a given violation. */
+  static generatePatch(finding: FindingLike, originalSource: string): RemediationPatch {
     let patchedSource = originalSource;
     let patchDescription = '';
 
@@ -33,23 +42,19 @@ export class RemediationSynthesizer {
       patchDescription = 'Rightsized over-provisioned instance to AWS Graviton t4g.xlarge, preserving throughput while reducing cloud expenditure.';
     }
 
-    const gitDiff = this.createUnifiedDiff(originalSource, patchedSource);
-
     return {
       ruleId: finding.ruleId,
       resourceId: finding.resourceId,
       description: patchDescription,
-      diff: gitDiff,
+      diff: this.createUnifiedDiff(originalSource, patchedSource),
       patchedContent: patchedSource
     };
   }
 
-  static createUnifiedDiff(original, modified) {
+  static createUnifiedDiff(original: string, modified: string): string {
     const origLines = original.split('\n');
     const modLines = modified.split('\n');
-
     let diff = `--- a/main.tf\n+++ b/main.tf\n@@ -1,${origLines.length} +1,${modLines.length} @@\n`;
-
     for (let i = 0; i < Math.max(origLines.length, modLines.length); i++) {
       const o = origLines[i];
       const m = modLines[i];
@@ -60,7 +65,6 @@ export class RemediationSynthesizer {
         if (m !== undefined) diff += `+${m}\n`;
       }
     }
-
     return diff;
   }
 }
