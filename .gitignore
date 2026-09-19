@@ -11,3 +11,9 @@ coverage/
 *.tsbuildinfo
 
 *.tsbuildinfo
+
+coverage/
+.nyc_output/
+
+coverage/
+.nyc_output/

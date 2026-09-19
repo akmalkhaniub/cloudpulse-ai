@@ -106,6 +106,7 @@ export class BedrockConverseAgent {
    * Handle a live Bedrock Converse response: run any requested tool_use blocks,
    * feed toolResult blocks back for a final turn, and normalize to ConverseResult.
    */
+  /* c8 ignore start -- live Bedrock tool-use loop; runs only with real AWS credentials */
   async processBedrockResponse(response: any, client: any, ConverseCommand: any, messages: any[], hclContent: string): Promise<ConverseResult> {
     const toolCalls: ConverseResult['toolCalls'] = [];
     const toolResults: ConverseResult['toolResults'] = [];
@@ -160,6 +161,7 @@ export class BedrockConverseAgent {
       }
     };
   }
+  /* c8 ignore stop */
 
   /** Dispatch and handle Bedrock tool execution. */
   executeTool(toolName: string, toolInput: Record<string, any>): unknown {

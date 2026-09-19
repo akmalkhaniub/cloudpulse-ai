@@ -1,0 +1,7 @@
+{
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/public/**", "**/*.d.ts"],
+  "reporter": ["text-summary"],
+  "check-coverage": true,
+  "lines": 85
+}
