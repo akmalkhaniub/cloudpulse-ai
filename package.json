@@ -12,7 +12,7 @@
     "typecheck": "tsc -p tsconfig.test.json",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
-    "test": "npm run typecheck && tsx test/verify_cloudpulse.ts && tsx test/server_integration.ts",
+    "test": "npm run typecheck && tsx test/verify_cloudpulse.ts && tsx test/eval.test.ts && tsx test/server_integration.ts",
     "test:unit": "tsx test/verify_cloudpulse.ts",
     "test:integration": "tsx test/server_integration.ts",
     "docker:build": "docker build -t cloudpulse-ai:latest .",
@@ -22,7 +22,9 @@
     "deploy:gcp": "sh deploy/gcp/deploy.sh",
     "deploy:azure": "sh deploy/azure/deploy.sh",
     "deploy:k8s": "kubectl apply -k deploy/k8s/",
-    "tunnel": "powershell -ExecutionPolicy Bypass -File deploy/free/tunnel.ps1"
+    "tunnel": "powershell -ExecutionPolicy Bypass -File deploy/free/tunnel.ps1",
+    "test:eval": "tsx test/eval.test.ts",
+    "eval": "tsx src/eval.ts"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1135.0",
