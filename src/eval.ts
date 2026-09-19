@@ -38,6 +38,8 @@ resource "aws_ebs_volume" "orphan" {
 export const LABELED_TF_EXPECTED = [
   'SEC_OPEN_SSH_INGRESS',
   'SEC_UNENCRYPTED_DB',
+  'REL_NO_MULTI_AZ_DB',
+  'SEC_UNENCRYPTED_EBS',
   'COST_OVERPROVISIONED_EC2',
   'COST_ORPHANED_EBS_VOLUME',
 ];
@@ -50,6 +52,7 @@ resource "aws_security_group" "web" {
 resource "aws_db_instance" "db" {
   engine = "postgres"
   storage_encrypted = true
+  multi_az = true
 }
 resource "aws_instance" "batch" {
   instance_type = "t4g.large"

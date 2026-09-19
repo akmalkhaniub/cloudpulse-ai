@@ -107,6 +107,54 @@ export const RULES: Rule[] = [
       return false;
     },
     monthlySavingsUSD: 65.0
+  },
+  {
+    id: 'SEC_IAM_WILDCARD',
+    pillar: 'SECURITY',
+    severity: 'CRITICAL',
+    title: 'IAM Policy Grants Wildcard Action/Resource',
+    description: 'IAM policy uses Action "*" or Resource "*", violating least-privilege.',
+    check: (resource) => {
+      if (resource.type === 'aws_iam_policy' || resource.type === 'aws_iam_role_policy') {
+        const raw = resource.rawBody || '';
+        return /"?Action"?\s*[:=]\s*"?\*"?/i.test(raw) || /"?Resource"?\s*[:=]\s*"?\*"?/i.test(raw) || raw.includes('"*"');
+      }
+      return false;
+    },
+    monthlySavingsUSD: 0
+  },
+  {
+    id: 'SEC_UNENCRYPTED_EBS',
+    pillar: 'SECURITY',
+    severity: 'HIGH',
+    title: 'Unencrypted EBS Volume',
+    description: 'EBS volume lacks at-rest encryption (encrypted = true).',
+    check: (resource) => resource.type === 'aws_ebs_volume' && resource.properties.encrypted !== true,
+    monthlySavingsUSD: 0
+  },
+  {
+    id: 'REL_NO_MULTI_AZ_DB',
+    pillar: 'RELIABILITY',
+    severity: 'MEDIUM',
+    title: 'RDS Instance Without Multi-AZ',
+    description: 'Production RDS database has no Multi-AZ standby, risking availability on AZ failure.',
+    check: (resource) => resource.type === 'aws_db_instance' && resource.properties.multi_az !== true,
+    monthlySavingsUSD: 0
+  },
+  {
+    id: 'SEC_UNVERSIONED_S3',
+    pillar: 'SECURITY',
+    severity: 'LOW',
+    title: 'S3 Bucket Without Versioning',
+    description: 'S3 bucket has no versioning, weakening ransomware/accidental-delete recovery.',
+    check: (resource) => {
+      if (resource.type === 'aws_s3_bucket') {
+        const raw = (resource.rawBody || '').toLowerCase();
+        return !raw.includes('versioning');
+      }
+      return false;
+    },
+    monthlySavingsUSD: 0
   }
 ];
 

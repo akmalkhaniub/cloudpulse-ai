@@ -42,7 +42,7 @@ console.log(`   ✅ Parsed ${resources.length} resources into DAG nodes successf
 
 console.log('2️⃣ Testing AWS Well-Architected Rule Audit Engine...');
 const auditReport = WellArchitectedEngine.audit(resources);
-assert(auditReport.violationsCount === 3, `Expected 3 violations, found ${auditReport.violationsCount}`);
+assert(auditReport.violationsCount === 4, `Expected 4 violations, found ${auditReport.violationsCount}`);
 assert(auditReport.totalMonthlySavingsUSD === 340.0, `Expected $340 savings, got ${auditReport.totalMonthlySavingsUSD}`);
 console.log(`   💰 Total Projected Monthly Cost Reduction: $${auditReport.totalMonthlySavingsUSD}/month`);
 
@@ -64,7 +64,7 @@ const converseResult = await bedrockAgent.runConverseTurn('Inspect this Terrafor
 assert(converseResult.output.message.role === 'assistant', 'Response must be from assistant');
 assert(converseResult.toolCalls.length > 0, 'Agent must trigger tool calling');
 assert(converseResult.toolCalls[0].name === 'audit_iac_manifest', 'Tool call must invoke audit tool');
-assert(converseResult.audit.violationsCount === 3, 'Converse turn must surface all 3 violations');
+assert(converseResult.audit.violationsCount === 4, 'Converse turn must surface all 4 violations');
 console.log('   ⚡ Tool Call Triggered:', converseResult.toolCalls[0].name);
 
 console.log('6️⃣ Testing FinOps Tool Calculation...');
@@ -74,7 +74,7 @@ assert(finopsResult.annualizedSavingsUSD === 4080.0, 'Annualized savings must eq
 console.log(`   📈 Projected FinOps Annual Savings: $${finopsResult.annualizedSavingsUSD}/year`);
 
 console.log('7️⃣ Testing Batch Zero-Downtime Patch Generation...');
-assert(converseResult.patches.length === 3, 'Must generate patches for all 3 violations');
+assert(converseResult.patches.length === 4, 'Must generate patches for all 4 violations');
 console.log(`   🛠️ Generated ${converseResult.patches.length} compliant Terraform remediation patches.`);
 
 console.log('\n🎉 ALL 7 CLOUDPULSE AI & BEDROCK CONVERSE TESTS PASSED WITH 100% SUCCESS!\n');
