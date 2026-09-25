@@ -35,6 +35,30 @@ export interface AuditReport {
   findings: Finding[];
 }
 
+/**
+ * On-demand list prices, us-east-1, USD per hour.
+ * Source: AWS public price list order of magnitude, recorded 2026-09-25.
+ * This is a local table, not a live AWS Price List API call.
+ */
+export const ON_DEMAND_USD_PER_HOUR: Record<string, number> = {
+  'm5.4xlarge': 0.768,
+  'm5.8xlarge': 1.536,
+  'c5.4xlarge': 0.68,
+  'c5.8xlarge': 1.36,
+  't4g.xlarge': 0.1344
+};
+
+const HOURS_PER_MONTH = 730;
+export const RIGHTSIZE_TARGET = 't4g.xlarge';
+
+/** Monthly list-price difference versus the rightsizing target. 0 when the type is unknown. */
+export function rightsizingSavingsUSD(instanceType: string): number {
+  const current = ON_DEMAND_USD_PER_HOUR[instanceType];
+  const target = ON_DEMAND_USD_PER_HOUR[RIGHTSIZE_TARGET];
+  if (current == null || target == null) return 0;
+  return Math.round((current - target) * HOURS_PER_MONTH * 100) / 100;
+}
+
 export const RULES: Rule[] = [
   {
     id: 'SEC_PUBLIC_S3',
@@ -89,7 +113,7 @@ export const RULES: Rule[] = [
       }
       return false;
     },
-    monthlySavingsUSD: 340.0
+    monthlySavingsUSD: 0
   },
   {
     id: 'COST_ORPHANED_EBS_VOLUME',
@@ -175,9 +199,11 @@ export class WellArchitectedEngine {
             description: rule.description,
             resourceId: resource.id,
             resourceType: resource.type,
-            monthlySavingsUSD: rule.monthlySavingsUSD
+            monthlySavingsUSD: rule.id === 'COST_OVERPROVISIONED_EC2'
+              ? rightsizingSavingsUSD(String(resource.properties.instance_type || ''))
+              : rule.monthlySavingsUSD
           });
-          totalMonthlySavingsUSD += rule.monthlySavingsUSD;
+          totalMonthlySavingsUSD += findings[findings.length - 1].monthlySavingsUSD;
         }
       }
     }

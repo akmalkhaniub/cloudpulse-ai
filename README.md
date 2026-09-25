@@ -97,7 +97,7 @@ node src/server.js
 Open [http://localhost:3002](http://localhost:3002) in your browser:
 1. View the sample Terraform manifest with known security and sizing violations.
 2. Click **"Run Bedrock Converse Audit"** to watch the agent trigger tool calls and score the manifest.
-3. Inspect the **FinOps ROI metrics** ($340/mo savings, $4,080/yr annualized).
+3. Inspect FinOps savings from the local us-east-1 price table (not a live AWS Price List call, and not a fixed $340).
 4. Click **"View Synthesized Patch"** to inspect and copy the generated unified git diff.
 
 ---

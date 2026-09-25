@@ -58,7 +58,7 @@ export class BedrockConverseAgent {
         {
           toolSpec: {
             name: 'estimate_finops_savings',
-            description: 'Calculates projected monthly cloud spend reduction and carbon efficiency improvements (Graviton migration).',
+            description: 'Sums monthlySavingsUSD from the local us-east-1 price table. Not a live Price List API call.',
             inputSchema: { json: { type: 'object', properties: { violations: { type: 'array', description: 'Array of audit findings' } }, required: ['violations'] } }
           }
         }
@@ -182,8 +182,8 @@ export class BedrockConverseAgent {
       const totalSavings = (toolInput.violations || []).reduce((acc: number, v: any) => acc + (v.monthlySavingsUSD || 0), 0);
       return {
         projectedMonthlySavingsUSD: totalSavings,
-        annualizedSavingsUSD: totalSavings * 12,
-        sustainabilityScoreImprovement: '+35% carbon efficiency'
+        annualizedSavingsUSD: Math.round(totalSavings * 12 * 100) / 100,
+        priceTable: 'local us-east-1 on-demand table, not the AWS Price List API'
       };
     }
     throw new Error(`Unknown tool: ${toolName}`);

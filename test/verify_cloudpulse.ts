@@ -1,8 +1,9 @@
 import assert from 'assert';
 import { IaCParser } from '../src/iac_parser.js';
-import { WellArchitectedEngine } from '../src/well_architected_engine.js';
+import { WellArchitectedEngine, rightsizingSavingsUSD } from '../src/well_architected_engine.js';
 import { RemediationSynthesizer } from '../src/remediation_synthesizer.js';
 import { BedrockConverseAgent } from '../src/bedrock_converse_agent.js';
+import { openRemediationPr } from '../src/github_pr.js';
 
 console.log('🧪 Starting CloudPulse AI Automated Verification Suite (Amazon Developer Hackathon 2026)...\n');
 
@@ -43,7 +44,8 @@ console.log(`   ✅ Parsed ${resources.length} resources into DAG nodes successf
 console.log('2️⃣ Testing AWS Well-Architected Rule Audit Engine...');
 const auditReport = WellArchitectedEngine.audit(resources);
 assert(auditReport.violationsCount === 4, `Expected 4 violations, found ${auditReport.violationsCount}`);
-assert(auditReport.totalMonthlySavingsUSD === 340.0, `Expected $340 savings, got ${auditReport.totalMonthlySavingsUSD}`);
+const expectedSavings = rightsizingSavingsUSD('m5.4xlarge');
+assert(auditReport.totalMonthlySavingsUSD === expectedSavings, `Expected $${expectedSavings} from the price table, got ${auditReport.totalMonthlySavingsUSD}`);
 console.log(`   💰 Total Projected Monthly Cost Reduction: $${auditReport.totalMonthlySavingsUSD}/month`);
 
 console.log('3️⃣ Testing Automated Remediation Patch Synthesis...');
@@ -69,12 +71,19 @@ console.log('   ⚡ Tool Call Triggered:', converseResult.toolCalls[0].name);
 
 console.log('6️⃣ Testing FinOps Tool Calculation...');
 const finopsResult = bedrockAgent.executeTool('estimate_finops_savings', { violations: auditReport.findings }) as any;
-assert(finopsResult.projectedMonthlySavingsUSD === 340.0, 'Monthly savings must equal $340');
-assert(finopsResult.annualizedSavingsUSD === 4080.0, 'Annualized savings must equal $4,080');
+assert(finopsResult.projectedMonthlySavingsUSD === expectedSavings, 'Monthly savings must match the price table');
+assert(finopsResult.annualizedSavingsUSD === Math.round(expectedSavings * 12 * 100) / 100, 'Annualized savings must be 12x the monthly table');
 console.log(`   📈 Projected FinOps Annual Savings: $${finopsResult.annualizedSavingsUSD}/year`);
 
 console.log('7️⃣ Testing Batch Zero-Downtime Patch Generation...');
 assert(converseResult.patches.length === 4, 'Must generate patches for all 4 violations');
 console.log(`   🛠️ Generated ${converseResult.patches.length} compliant Terraform remediation patches.`);
 
-console.log('\n🎉 ALL 7 CLOUDPULSE AI & BEDROCK CONVERSE TESTS PASSED WITH 100% SUCCESS!\n');
+console.log('8️⃣ Testing remediation PR dry-run (no GitHub token)...');
+delete process.env.GITHUB_TOKEN;
+const pr = await openRemediationPr(sshPatch.diff);
+assert(pr.mode === 'dry-run' && pr.url === null, 'Without a token the PR must not be opened');
+assert(pr.draft.patch.includes('10.0.0.0/16'), 'Dry-run payload keeps the patch');
+console.log('   ✅ PR stayed a dry-run.');
+
+console.log('\n🎉 ALL 8 CLOUDPULSE AI & BEDROCK CONVERSE TESTS PASSED WITH 100% SUCCESS!\n');

@@ -1,6 +1,7 @@
 /**
  * RemediationSynthesizer - Generates unified Git patch diffs for detected violations.
  */
+import { RIGHTSIZE_TARGET } from './well_architected_engine.js';
 
 export interface FindingLike {
   ruleId: string;
@@ -37,7 +38,7 @@ export class RemediationSynthesizer {
     } else if (finding.ruleId === 'COST_OVERPROVISIONED_EC2') {
       patchedSource = originalSource.replace(
         /instance_type\s*=\s*"[cm]5\.4xlarge"/g,
-        'instance_type = "t4g.xlarge" # Rightsized to AWS Graviton (est. $340/mo savings)'
+        `instance_type = "${RIGHTSIZE_TARGET}" # Rightsized using the local us-east-1 price table`
       );
       patchDescription = 'Rightsized over-provisioned instance to AWS Graviton t4g.xlarge, preserving throughput while reducing cloud expenditure.';
     }
