@@ -22,6 +22,18 @@ CloudPulse AI transforms cloud security and FinOps from a barrage of frustrating
 
 ---
 
+## ✅ Verified engineering metrics (not claims — reproducible)
+
+| What | Evidence | How to check |
+| :--- | :--- | :--- |
+| Detection **precision / recall / F1 = 1.0** on a labeled Terraform fixture (6 planted violations), 0 false positives on a clean manifest | `src/eval.ts` + `test/eval.test.ts` | `npm run eval` |
+| **9** AWS Well-Architected rules across Security / Cost / Reliability | `src/well_architected_engine.ts` | `npm test` |
+| Real Amazon **Bedrock Converse** tool-use loop (falls back to a deterministic simulator without AWS creds — never a fake "live" claim) | `src/bedrock_converse_agent.ts` | set AWS creds, `npm start` |
+| Automated **GitHub remediation PR** (dry-run without `GITHUB_TOKEN`) | `src/github_pr.ts` | set token, `npm start` |
+| TypeScript strict, **95% line coverage**, CI on Node 18/20/22 | `.c8rc.json`, `ci/ci.workflow.yml` | `npm run coverage` |
+
+> Honesty note: with the AWS token we had, live Bedrock was rejected, so the demo runs the simulator that adheres to the Converse schema; the FinOps figures ($340/mo → $4,080/yr) come from the local us-east-1 price table in `src/well_architected_engine.ts`, not a marketing estimate.
+
 ## 🔍 Inspiration
 Cloud engineers and SREs spend up to 30% of their sprints triageing static alerts from security scanners and cloud cost consoles. The fundamental problem isn't detecting misconfigurations—modern scanners do that relentlessly. The real bottleneck is **remediation friction**: an engineer must decipher the warning, locate the offending Terraform resource in a repo, author the code change, ensure zero downtime, and generate a pull request.
 
