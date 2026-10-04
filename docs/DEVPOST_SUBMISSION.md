@@ -26,7 +26,7 @@ CloudPulse AI transforms cloud security and FinOps from a barrage of frustrating
 
 | What | Evidence | How to check |
 | :--- | :--- | :--- |
-| Detection **precision / recall / F1 = 1.0** on a labeled Terraform fixture (6 planted violations), 0 false positives on a clean manifest | `src/eval.ts` + `test/eval.test.ts` | `npm run eval` |
+| Detection **precision / recall / F1 = 1.0** on a labeled Terraform fixture (6 planted violations), plus **zero false positives** on both a clean manifest and an *adversarial-clean* one (port-443 rule with "22" in a tag, a bucket versioned via a separate `aws_s3_bucket_versioning` resource) | `src/eval.ts` + `test/eval.test.ts` | `npm run eval` |
 | **9** AWS Well-Architected rules across Security / Cost / Reliability | `src/well_architected_engine.ts` | `npm test` |
 | Real Amazon **Bedrock Converse** tool-use loop (falls back to a deterministic simulator without AWS creds — never a fake "live" claim) | `src/bedrock_converse_agent.ts` | set AWS creds, `npm start` |
 | Automated **GitHub remediation PR** (dry-run without `GITHUB_TOKEN`) | `src/github_pr.ts` | set token, `npm start` |

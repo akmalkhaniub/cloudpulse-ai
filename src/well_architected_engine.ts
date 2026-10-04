@@ -83,9 +83,16 @@ export const RULES: Rule[] = [
     title: 'Unrestricted Ingress on Port 22 (SSH) or 3389 (RDP)',
     description: 'Security group allows 0.0.0.0/0 ingress on administrative ports, exposing instances to automated brute-force attacks.',
     check: (resource) => {
-      if (resource.type === 'aws_security_group') {
-        const raw = resource.rawBody || '';
-        if (raw.includes('0.0.0.0/0') && (raw.includes('22') || raw.includes('3389'))) return true;
+      if (resource.type !== 'aws_security_group') return false;
+      const raw = resource.rawBody || '';
+      if (!raw.includes('0.0.0.0/0')) return false;
+      // Explicit admin port as a from_port/to_port value (not a substring in a CIDR/tag).
+      if (/(?:from_port|to_port)\s*[:=]\s*"?(?:22|3389)"?/.test(raw)) return true;
+      // An ingress port RANGE that spans an admin port (e.g. from_port = 0, to_port = 65535).
+      const fromPorts = [...raw.matchAll(/from_port\s*[:=]\s*"?(\d+)"?/g)].map((m) => Number(m[1]));
+      const toPorts = [...raw.matchAll(/to_port\s*[:=]\s*"?(\d+)"?/g)].map((m) => Number(m[1]));
+      for (let i = 0; i < Math.min(fromPorts.length, toPorts.length); i++) {
+        if ((fromPorts[i] <= 22 && toPorts[i] >= 22) || (fromPorts[i] <= 3389 && toPorts[i] >= 3389)) return true;
       }
       return false;
     },
@@ -161,7 +168,7 @@ export const RULES: Rule[] = [
     pillar: 'RELIABILITY',
     severity: 'MEDIUM',
     title: 'RDS Instance Without Multi-AZ',
-    description: 'Production RDS database has no Multi-AZ standby, risking availability on AZ failure.',
+    description: 'RDS database instance has no Multi-AZ standby, risking availability on AZ failure.',
     check: (resource) => resource.type === 'aws_db_instance' && resource.properties.multi_az !== true,
     monthlySavingsUSD: 0
   },
@@ -171,12 +178,15 @@ export const RULES: Rule[] = [
     severity: 'LOW',
     title: 'S3 Bucket Without Versioning',
     description: 'S3 bucket has no versioning, weakening ransomware/accidental-delete recovery.',
-    check: (resource) => {
-      if (resource.type === 'aws_s3_bucket') {
-        const raw = (resource.rawBody || '').toLowerCase();
-        return !raw.includes('versioning');
-      }
-      return false;
+    check: (resource, allResources) => {
+      if (resource.type !== 'aws_s3_bucket') return false;
+      // Versioned inline (older TF style) …
+      if ((resource.rawBody || '').toLowerCase().includes('versioning')) return false;
+      // … or via a separate aws_s3_bucket_versioning resource (current TF style).
+      const externallyVersioned = allResources.some(
+        (r) => r.type === 'aws_s3_bucket_versioning' && (r.rawBody || '').includes(resource.name)
+      );
+      return !externallyVersioned;
     },
     monthlySavingsUSD: 0
   }

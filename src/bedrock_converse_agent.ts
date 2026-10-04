@@ -197,6 +197,13 @@ export class BedrockConverseAgent {
     const toolResult = this.executeTool('audit_iac_manifest', { hclContent });
     const patches = audit.findings.map((f) => RemediationSynthesizer.generatePatch(f, hclContent));
 
+    // Derive the summary from the ACTUAL audit (no hardcoded claims).
+    const criticals = audit.findings.filter((f) => f.severity === 'CRITICAL').length;
+    const annual = Math.round(audit.totalMonthlySavingsUSD * 12 * 100) / 100;
+    const securityLine = criticals > 0
+      ? `**${criticals} critical finding${criticals === 1 ? '' : 's'}** (highest severity across Security pillar).`
+      : `no critical findings.`;
+
     return {
       modelId: this.modelId,
       stopReason: 'end_turn',
@@ -205,7 +212,7 @@ export class BedrockConverseAgent {
           role: 'assistant',
           content: [
             {
-              text: `### CloudPulse AI Audit Summary (Amazon Bedrock Converse API)\n\nI parsed **${resources.length} infrastructure resources** and identified **${audit.violationsCount} AWS Well-Architected violations** across Security, FinOps, and Reliability.\n\n- **Projected FinOps Savings:** $${audit.totalMonthlySavingsUSD}/month ($${audit.totalMonthlySavingsUSD * 12}/year)\n- **Security Posture:** 1 Critical Vulnerability (Unrestricted 0.0.0.0/0 SSH)\n- **Remediation Status:** Automated zero-downtime patches synthesized.`
+              text: `### CloudPulse AI Audit Summary (Amazon Bedrock Converse API — simulator)\n\nI parsed **${resources.length} infrastructure resources** and identified **${audit.violationsCount} AWS Well-Architected violations** across Security, FinOps, and Reliability.\n\n- **Projected FinOps Savings:** $${audit.totalMonthlySavingsUSD}/month ($${annual}/year)\n- **Security Posture:** ${securityLine}\n- **Remediation Status:** ${patches.length} zero-downtime patch${patches.length === 1 ? '' : 'es'} synthesized.`
             }
           ]
         }
@@ -214,7 +221,8 @@ export class BedrockConverseAgent {
       toolResults: [{ toolUseId, content: [{ json: toolResult }] }],
       audit,
       patches,
-      usage: { inputTokens: 642, outputTokens: 388, totalTokens: 1030 }
+      // Simulator: no live model call was made, so there is no real token usage to report.
+      usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 }
     };
   }
 }

@@ -73,10 +73,29 @@ export function scoreDetection(hcl: string, expected: string[]): DetectionScore 
   return { precision: Number(precision.toFixed(3)), recall: Number(recall.toFixed(3)), f1, found, expected };
 }
 
-export function evaluate(): { labeled: DetectionScore; clean: DetectionScore } {
+// Adversarial-but-clean: things that naive substring rules would falsely flag.
+//   - 0.0.0.0/0 on port 443 (allowed) with "22" in a tag and a high port — must NOT trip the SSH rule.
+//   - an S3 bucket versioned via the SEPARATE aws_s3_bucket_versioning resource — must NOT trip "unversioned".
+export const TRICKY_CLEAN_TF = `
+resource "aws_security_group" "web" {
+  ingress { from_port = 443 to_port = 443 protocol = "tcp" cidr_blocks = ["0.0.0.0/0"] }
+  ingress { from_port = 8022 to_port = 8022 protocol = "tcp" cidr_blocks = ["10.0.0.0/8"] }
+  tags = { Name = "web-sg-22" }
+}
+resource "aws_s3_bucket" "assets" {
+  bucket = "my-assets"
+}
+resource "aws_s3_bucket_versioning" "assets_v" {
+  bucket = aws_s3_bucket.assets.id
+  versioning_configuration { status = "Enabled" }
+}
+`.trim();
+
+export function evaluate(): { labeled: DetectionScore; clean: DetectionScore; tricky: DetectionScore } {
   return {
     labeled: scoreDetection(LABELED_TF, LABELED_TF_EXPECTED),
     clean: scoreDetection(CLEAN_TF, []),
+    tricky: scoreDetection(TRICKY_CLEAN_TF, []),
   };
 }
 
@@ -86,4 +105,5 @@ if (isMain) {
   console.log('CloudPulse detection eval');
   console.log('  labeled:', r.labeled);
   console.log('  clean  :', r.clean);
+  console.log('  tricky :', r.tricky);
 }
