@@ -42,9 +42,9 @@ try {
   ok('encoded path traversal blocked (403)', (await fetch(base + '/..%2f..%2fserver.ts')).status === 403);
   ok('oversized body rejected (413)', (await post('/api/audit', { hclContent: 'x'.repeat(300 * 1024) })).status === 413);
 
-  console.log('\n5️⃣ Alexa+ MCP Server (/api/mcp) & Voice Skill (/api/alexa)...');
+  console.log('\n5️⃣ Alexa+ MCP Server (/api/mcp), Bee Wearable (/api/bee/ingest), & Fire TV (/api/firetv/wallboard)...');
   const mcpInfo = await get('/api/mcp');
-  ok('GET /api/mcp returns 4 registered MCP tools', mcpInfo.status === 200 && mcpInfo.body.tools.length === 4);
+  ok('GET /api/mcp returns 6 registered MCP tools', mcpInfo.status === 200 && mcpInfo.body.tools.length === 6);
 
   const rpcInit = await post('/api/mcp', { jsonrpc: '2.0', id: 1, method: 'initialize' });
   ok('MCP JSON-RPC initialize returns serverInfo', rpcInit.status === 200 && rpcInit.body.result.serverInfo.name === 'cloudpulse-alexa-plus-mcp');
@@ -63,7 +63,14 @@ try {
   const alexaShip = await post('/api/alexa', { utterance: 'Alexa, fix all violations and ship a pull request', hclContent: HCL });
   ok('POST /api/alexa routes PR shipping utterance', alexaShip.status === 200 && alexaShip.body.matchedIntent === 'SynthesizeAndShipPR');
 
-  console.log(`\n🎉 ALL ${passed} CLOUDPULSE SERVER & ALEXA+ MCP INTEGRATION ASSERTIONS PASSED.\n`);
+  const beeSync = await post('/api/bee/ingest', { hclContent: HCL });
+  ok('POST /api/bee/ingest extracts standup action items and cross-verifies against Terraform AST', beeSync.status === 200 && beeSync.body.extractedActionItems.length >= 3 && beeSync.body.verifiedInTerraformCount >= 1);
+
+  const fireTv = await post('/api/firetv/wallboard', { hclContent: HCL });
+  ok('POST /api/firetv/wallboard returns 10-foot NOC wallboard tiles with D-Pad navigation', fireTv.status === 200 && fireTv.body.dpadNavigationSupported === true && fireTv.body.tiles.length >= 1);
+
+  console.log(`\n🎉 ALL ${passed} CLOUDPULSE UNIFIED AMAZON ECOSYSTEM INTEGRATION ASSERTIONS PASSED.\n`);
 } finally {
   server.close();
 }
+

@@ -1,17 +1,17 @@
 # 🛠️ Shape: Structured Developer Feedback for Amazon Engineering Teams
 
 > **Hackathon:** Build, Ship, Shape: Amazon Developer Hackathon (Deadline: October 23, 2026)  
-> **Project:** CloudPulse AI — Alexa+ MCP Skill & Amazon Bedrock FinOps Agent  
-> **Tracks Targeted:** Primary: **Alexa+ Track (Self-Hosted MCP Server & Agent Skill)** | Mini-Challenge: **AWS Builder**
+> **Project:** CloudPulse AI — Unified Amazon Ecosystem Agent (Alexa+ MCP + Amazon Bee Wearable + Fire TV + AWS Bedrock)  
+> **Tracks Targeted:** Primary: **Alexa+ Track (Self-Hosted MCP Server & Agent Skill)** | Ecosystem: **Amazon Bee Wearable & Fire TV** | Mini-Challenge: **AWS Builder (`amazon.nova-pro-v1:0`)**
 
-This document fulfills the **"Shape"** pillar of the Amazon Developer Hackathon by providing concrete, engineering-level product feedback, friction points, and architectural recommendations discovered while building **CloudPulse AI**.
+This document fulfills the **"Shape"** pillar of the Amazon Developer Hackathon by providing concrete, engineering-level product feedback, friction points, and architectural recommendations discovered while building **CloudPulse AI** across all four Amazon developer surfaces.
 
 ---
 
 ## 1. Alexa+ Track: Self-Hosted Model Context Protocol (MCP) Server Integration
 
 ### 🔍 What We Built
-We implemented a JSON-RPC 2.0 Model Context Protocol server (`src/alexa_mcp_server.ts` exposed at `/api/mcp`) with 4 tools (`get_morning_cloud_briefing`, `audit_iac_manifest`, `synthesize_remediation_diff`, `ship_github_remediation_pr`) and a web-based Alexa+ Voice Simulator (`/api/alexa`).
+We implemented a JSON-RPC 2.0 Model Context Protocol server (`src/alexa_mcp_server.ts` exposed at `/api/mcp`) with 6 tools (`get_morning_cloud_briefing`, `audit_iac_manifest`, `synthesize_remediation_diff`, `ship_github_remediation_pr`, `ingest_bee_meeting_transcript`, `get_firetv_wallboard_state`) and a web-based Alexa+ Voice Simulator (`/api/alexa`) with browser microphone Speech-to-Text (`SpeechRecognition`) and Text-to-Speech (`speechSynthesis`).
 
 ### ⚠️ Developer Friction Encountered
 1. **Schema Translation Between MCP and Bedrock Converse:**
@@ -42,3 +42,31 @@ We integrated `@aws-sdk/client-bedrock-runtime` (`ConverseCommand`) with `amazon
 ### 💡 Actionable Recommendations for the Amazon Bedrock Team
 * **Add `listConverseReadyModels()` Helper:** Add a convenience method or CLI flag (`aws bedrock list-foundation-models --converse-tool-use-ready`) that filters specifically for models currently callable by the caller's IAM principal with `toolConfig` enabled.
 * **Auto-Coerce Non-Object `toolResult.content[].json`:** Automatically wrap array or primitive tool outputs into `{ value: ... }` in the SDK serializer so multi-model switching across Nova Pro and Claude 3.5 Sonnet never fails on tool return types.
+
+---
+
+## 3. Amazon Bee Wearable Track: Ambient Meeting Ingestion & Webhook Context
+
+### 🔍 What We Built
+We built `ingest_bee_meeting_transcript` (`POST /api/bee/ingest`), which ingests multi-speaker engineering standup transcripts captured by an Amazon Bee wearable, extracts spoken cloud security and FinOps action items, cross-verifies whether each spoken concern is actually present in the production Terraform AST, and stages unified remediation diffs.
+
+### ⚠️ Developer Friction Encountered
+1. **Unstructured Utterance Boundaries in Developer Workflows:**
+   - Wearable transcripts stream raw diarized utterances (`Speaker A`, `Speaker B`), but developer tools require structured entity extraction (e.g., AWS resource names like `aws_db_instance.core_postgres`, port numbers like `22`, or instance classes like `m5.4xlarge`) before triggering downstream MCP tools.
+
+### 💡 Actionable Recommendations for the Amazon Bee Team
+* **Signed `bee.meeting.action_item.extracted` Webhooks with MCP Forwarding:** Allow Bee Developer Kit apps to register custom domain entity extractors (such as AWS resource IDs or GitHub repo names) and forward structured JSON-RPC `tools/call` payloads directly to an engineer's self-hosted Alexa+ MCP server at the end of a standup.
+
+---
+
+## 4. Amazon Fire TV Track: 10-Foot NOC Wallboard & D-Pad Focus Management
+
+### 🔍 What We Built
+We built `get_firetv_wallboard_state` (`POST /api/firetv/wallboard`) and a 10-foot NOC Engineering War-Room Wallboard UI with hardware D-Pad spatial focus navigation (`ArrowLeft`, `ArrowRight`, `Enter`) so engineering teams can inspect violations and trigger Alexa+ remediation directly on an office Fire TV screen.
+
+### ⚠️ Developer Friction Encountered
+1. **Cross-Device Session Handoff Between Alexa+ Voice and Fire TV UI:**
+   - When an engineer asks *"Alexa, show the CloudPulse war-room on Fire TV"*, synchronizing the active MCP tool state (`audit_iac_manifest` + `get_firetv_wallboard_state`) with the 10-foot UI focus ring requires custom polling or WebSocket glue.
+
+### 💡 Actionable Recommendations for the Fire TV / Vega OS Team
+* **First-Class `useAlexaMcpState()` Hook in Vega OS / React Native for Fire TV:** Provide a built-in state-sync primitive that binds an Alexa+ MCP tool response directly to a D-Pad spatial navigation grid on Fire TV without requiring external WebSocket state brokers.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CloudPulse AI — Alexa+ MCP Skill & Amazon Bedrock FinOps Agent</title>
+  <title>CloudPulse AI — Unified Amazon Ecosystem Agent (Alexa+ • Bee • Fire TV • AWS Bedrock)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
@@ -13,6 +13,11 @@
     }
     .alexa-ring-active {
       animation: alexaPulse 1.8s infinite ease-in-out;
+    }
+    .tv-tile-focused {
+      outline: 3px solid #22d3ee !important;
+      transform: scale(1.02);
+      box-shadow: 0 0 30px rgba(34, 211, 238, 0.35);
     }
   </style>
 </head>
@@ -26,12 +31,14 @@
           <i class="fa-solid fa-cloud-bolt text-lg font-black"></i>
         </div>
         <div>
-          <div class="flex flex-wrap items-center gap-2">
+          <div class="flex flex-wrap items-center gap-1.5">
             <span class="font-extrabold text-lg tracking-tight">CloudPulse AI</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">ALEXA+ MCP SERVER</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">BEDROCK CONVERSE API</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">ALEXA+ MCP</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">🐝 BEE WEARABLE</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40">📺 FIRE TV NOC</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">BEDROCK NOVA PRO</span>
           </div>
-          <p class="text-xs text-slate-400">Build, Ship, Shape: Amazon Developer Hackathon • Alexa+ Track & AWS Builder</p>
+          <p class="text-xs text-slate-400">Build, Ship, Shape: Amazon Developer Hackathon • Multi-Device Cloud & Code Copilot</p>
         </div>
       </div>
 
@@ -47,17 +54,25 @@
   <!-- Navigation Tabs -->
   <div class="max-w-7xl mx-auto px-4 pt-5">
     <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
-      <button id="tabMainBtn" onclick="switchTab('main')" class="px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition flex items-center space-x-2">
+      <button id="tabMainBtn" onclick="switchTab('main')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition flex items-center space-x-2">
         <i class="fa-solid fa-microphone-lines"></i>
         <span>Alexa+ Voice & Bedrock Studio</span>
       </button>
-      <button id="tabMcpBtn" onclick="switchTab('mcp')" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2">
-        <i class="fa-solid fa-plug-circle-bolt"></i>
-        <span>MCP JSON-RPC 2.0 Inspector (/api/mcp)</span>
+      <button id="tabBeeBtn" onclick="switchTab('bee')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2">
+        <i class="fa-solid fa-wand-magic-sparkles text-yellow-400"></i>
+        <span>🐝 Amazon Bee Wearable Sync</span>
       </button>
-      <button id="tabShapeBtn" onclick="switchTab('shape')" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2">
-        <i class="fa-solid fa-compass-drafting"></i>
-        <span>"Shape" Amazon Developer Feedback</span>
+      <button id="tabFiretvBtn" onclick="switchTab('firetv')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2">
+        <i class="fa-solid fa-tv text-purple-400"></i>
+        <span>📺 Fire TV 10-Foot War-Room</span>
+      </button>
+      <button id="tabMcpBtn" onclick="switchTab('mcp')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2">
+        <i class="fa-solid fa-plug-circle-bolt text-cyan-400"></i>
+        <span>MCP JSON-RPC 2.0 (/api/mcp)</span>
+      </button>
+      <button id="tabShapeBtn" onclick="switchTab('shape')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2">
+        <i class="fa-solid fa-compass-drafting text-amber-400"></i>
+        <span>"Shape" Developer Feedback</span>
       </button>
     </div>
   </div>
@@ -70,17 +85,21 @@
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center space-x-3.5">
           <div id="alexaOrb" class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white border-2 border-cyan-300 alexa-ring-active shrink-0">
-            <i class="fa-solid fa-waveform-lines text-lg"></i>
+            <i class="fa-solid fa-microphone text-lg"></i>
           </div>
           <div>
             <div class="flex items-center space-x-2">
-              <span class="text-xs font-extrabold uppercase tracking-wider text-cyan-300">Alexa+ Agent Skill & MCP Simulator</span>
+              <span class="text-xs font-extrabold uppercase tracking-wider text-cyan-300">Alexa+ Agent Skill & MCP Simulator (6 Tools Active)</span>
               <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Protocol: 2025-03-26</span>
             </div>
-            <p class="text-xs text-slate-300 mt-0.5">Trigger voice commands or type an Alexa+ utterance to invoke self-hosted MCP tools and hear spoken synthesis.</p>
+            <p class="text-xs text-slate-300 mt-0.5">Click any voice preset, speak into your microphone, or type an utterance to invoke CloudPulse MCP tools.</p>
           </div>
         </div>
         <div class="flex items-center space-x-2">
+          <button id="btnMicInput" onclick="startLiveMicInput()" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 text-xs font-bold transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-microphone"></i>
+            <span id="micBtnLabel">Speak into Mic</span>
+          </button>
           <label class="flex items-center space-x-1.5 text-xs text-slate-300 cursor-pointer bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800">
             <input type="checkbox" id="voiceTtsToggle" checked class="accent-cyan-400">
             <span>🔊 Speak Alexa Reply</span>
@@ -94,19 +113,27 @@
           <i class="fa-solid fa-sun text-amber-400"></i>
           <span>"Alexa, give me my morning cloud briefing"</span>
         </button>
+        <button onclick="sendAlexaUtterance('Alexa, sync my Amazon Bee wearable standup recording and verify in Terraform')" class="text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-yellow-950/60 text-yellow-200 border border-yellow-500/30 transition flex items-center space-x-2">
+          <i class="fa-solid fa-wave-square text-yellow-400"></i>
+          <span>"Alexa, sync my Bee wearable standup notes"</span>
+        </button>
         <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to audit my Terraform with Amazon Bedrock')" class="text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-cyan-950/60 text-cyan-200 border border-cyan-500/30 transition flex items-center space-x-2">
           <i class="fa-solid fa-shield-halved text-cyan-400"></i>
-          <span>"Alexa, audit my Terraform for security & cost waste"</span>
+          <span>"Alexa, audit my Terraform with Bedrock"</span>
         </button>
         <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to fix all violations and ship a GitHub Pull Request')" class="text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-emerald-950/60 text-emerald-200 border border-emerald-500/30 transition flex items-center space-x-2">
           <i class="fa-solid fa-code-pull-request text-emerald-400"></i>
-          <span>"Alexa, fix all violations and ship a GitHub PR"</span>
+          <span>"Alexa, fix all violations & ship a GitHub PR"</span>
+        </button>
+        <button onclick="sendAlexaUtterance('Alexa, launch Fire TV war room wallboard')" class="text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-purple-950/60 text-purple-200 border border-purple-500/30 transition flex items-center space-x-2">
+          <i class="fa-solid fa-tv text-purple-400"></i>
+          <span>"Alexa, launch Fire TV War-Room mode"</span>
         </button>
       </div>
 
       <!-- Custom Utterance Input + Spoken Response Card -->
       <div class="mt-3 flex gap-2">
-        <input id="alexaInput" type="text" placeholder="Ask Alexa+ anything (e.g., 'Alexa, ask CloudPulse to ship the remediation patch')..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400">
+        <input id="alexaInput" type="text" placeholder="Ask Alexa+ anything (e.g., 'Alexa, sync my Bee wearable meeting transcript')..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400">
         <button onclick="sendAlexaUtterance(document.getElementById('alexaInput').value)" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs transition">
           Send to Alexa+ MCP
         </button>
@@ -153,11 +180,11 @@
           </div>
           <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
             <span class="text-[11px] text-slate-400">FinOps Monthly Savings</span>
-            <div id="metricSavings" class="text-2xl font-black text-emerald-400 mt-1">$276.48</div>
+            <div id="metricSavings" class="text-2xl font-black text-emerald-400 mt-1">$462.53</div>
           </div>
           <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
             <span class="text-[11px] text-slate-400">Annualized ROI</span>
-            <div id="metricAnnual" class="text-2xl font-black text-amber-400 mt-1">$3,317.76/yr</div>
+            <div id="metricAnnual" class="text-2xl font-black text-amber-400 mt-1">$5,550.36/yr</div>
           </div>
           <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
             <span class="text-[11px] text-slate-400">Detection Benchmark F1</span>
@@ -200,34 +227,94 @@
     </div>
   </main>
 
-  <!-- TAB 2: MCP JSON-RPC 2.0 Inspector -->
+  <!-- TAB 2: Amazon Bee Wearable Ambient Standup Sync -->
+  <section id="tabBee" class="max-w-7xl mx-auto px-4 py-6 hidden space-y-6">
+    <div class="p-6 rounded-2xl bg-slate-900 border border-yellow-500/30 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">🐝 AMAZON BEE WEARABLE TRACK INTEGRATION</span>
+          <h2 class="text-base font-extrabold text-white mt-2">Ambient Architecture Standup Transcript → Verified Terraform Patches</h2>
+          <p class="text-xs text-slate-400 mt-1">Ingests ambient conversations captured by the Amazon Bee AI wearable wristband during engineering standups, extracts spoken infrastructure concerns, verifies them against your Terraform AST, and generates the Git diff automatically.</p>
+        </div>
+        <button onclick="runBeeIngest()" class="px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-extrabold text-xs transition shrink-0">
+          🐝 Sync Bee Wearable Transcript
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 space-y-2">
+          <label class="text-xs font-bold text-slate-300">Captured Amazon Bee Standup Transcript</label>
+          <textarea id="beeTranscriptInput" rows="10" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-yellow-100 focus:outline-none focus:border-yellow-400">[09:14:02] Sarah (SRE Lead): Morning team. Before Friday's cutover, I noticed our web security group still has port 22 SSH open to 0.0.0.0/0.
+[09:14:19] Alex (Platform Eng): Good catch. Also, app_db Postgres in staging is running without storage encryption or Multi-AZ failover.
+[09:14:41] Priya (FinOps): And please check batch_processor — it's sitting on an m5.4xlarge burning budget when a Graviton m7g.xlarge would cut costs by over $270 a month.</textarea>
+        </div>
+        <div class="lg:col-span-7 space-y-3">
+          <label class="text-xs font-bold text-slate-300">Extracted Spoken Action Items & Terraform AST Verification</label>
+          <div id="beeActionItemsContainer" class="space-y-2.5">
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400">
+              Click "🐝 Sync Bee Wearable Transcript" to correlate spoken meeting notes with your Terraform manifest.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: Amazon Fire TV 10-Foot NOC War-Room Wallboard -->
+  <section id="tabFiretv" class="max-w-7xl mx-auto px-4 py-6 hidden space-y-6">
+    <div class="p-6 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-purple-500/40 shadow-2xl space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40">📺 AMAZON FIRE TV (FIRE OS / VEGA OS) 10-FOOT NOC WALLBOARD</span>
+          <h2 class="text-xl font-black text-white mt-2">Engineering War-Room Live Posture Display</h2>
+          <p class="text-xs text-slate-400">Designed for office wall-mounted Fire TV displays. Use your keyboard or Fire TV D-Pad remote (<kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300">◀</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300">▶</kbd> + <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300">Enter</kbd>) to focus and inspect remediation tiles from across the room.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="moveTvFocus(-1)" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold">◀ D-Pad Left</button>
+          <button onclick="moveTvFocus(1)" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold">D-Pad Right ▶</button>
+          <button onclick="selectTvTile()" class="px-4 py-2 rounded-xl bg-purple-500 hover:bg-purple-400 text-slate-950 text-xs font-extrabold">⏎ Select Tile</button>
+        </div>
+      </div>
+
+      <div id="fireTvTilesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+      <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800">
+        <div class="text-xs font-bold text-purple-300 mb-2">📺 Focused Tile Unified Remediation Patch (10-Foot View)</div>
+        <pre id="fireTvPatchPreview" class="font-mono text-xs text-emerald-300 overflow-x-auto">Use D-Pad Left/Right or click a tile above to inspect its remediation patch.</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 4: MCP JSON-RPC 2.0 Inspector -->
   <section id="tabMcp" class="max-w-7xl mx-auto px-4 py-6 hidden space-y-4">
     <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 class="text-sm font-extrabold text-cyan-300">Self-Hosted Alexa+ MCP Server Inspector (`/api/mcp`)</h2>
           <p class="text-xs text-slate-400">Send raw JSON-RPC 2.0 requests (`initialize`, `tools/list`, `tools/call`) directly to the CloudPulse MCP server.</p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
           <button onclick="runMcpRpc('initialize')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300">initialize</button>
-          <button onclick="runMcpRpc('tools/list')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300">tools/list</button>
-          <button onclick="runMcpRpc('tools/call')" class="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-xs font-mono font-bold text-slate-950">tools/call (briefing)</button>
+          <button onclick="runMcpRpc('tools/list')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300">tools/list (6 tools)</button>
+          <button onclick="runMcpRpc('tools/call', 'get_morning_cloud_briefing')" class="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-xs font-mono font-bold text-slate-950">tools/call (briefing)</button>
+          <button onclick="runMcpRpc('tools/call', 'ingest_bee_meeting_transcript')" class="px-3 py-1.5 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-xs font-mono font-bold text-slate-950">tools/call (bee_sync)</button>
+          <button onclick="runMcpRpc('tools/call', 'get_firetv_wallboard_state')" class="px-3 py-1.5 rounded-lg bg-purple-400 hover:bg-purple-300 text-xs font-mono font-bold text-slate-950">tools/call (firetv)</button>
         </div>
       </div>
       <pre id="mcpRpcOutput" class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto max-h-96">Click any JSON-RPC method button above to inspect the live MCP payload.</pre>
     </div>
   </section>
 
-  <!-- TAB 3: "Shape" Amazon Developer Feedback -->
+  <!-- TAB 5: "Shape" Amazon Developer Feedback -->
   <section id="tabShape" class="max-w-7xl mx-auto px-4 py-6 hidden space-y-4">
     <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
       <div>
         <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">MANDATORY "SHAPE" TRACK DELIVERABLE</span>
         <h2 class="text-base font-extrabold text-white mt-2">Structured Product Feedback for Amazon Developer & Bedrock Engineering Teams</h2>
-        <p class="text-xs text-slate-400 mt-1">Actionable friction points, schema observations, and feature requests gathered while building CloudPulse AI on Alexa+ MCP and Amazon Bedrock Converse API.</p>
+        <p class="text-xs text-slate-400 mt-1">Actionable friction points, schema observations, and feature requests gathered while building CloudPulse AI across Alexa+ MCP, Amazon Bee, Fire TV, and Amazon Bedrock Converse API.</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
           <div class="text-xs font-bold text-cyan-400">1. Alexa+ MCP Server Schema Alignment</div>
           <p class="text-xs text-slate-300 leading-relaxed">
@@ -243,10 +330,17 @@
           </p>
         </div>
         <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-          <div class="text-xs font-bold text-emerald-400">3. Local Web Simulator for Gated Alexa+ Skills</div>
+          <div class="text-xs font-bold text-yellow-400">3. Amazon Bee Wearable Structured Webhook Events</div>
           <p class="text-xs text-slate-300 leading-relaxed">
-            <strong>Friction:</strong> Because the Alexa+ Developer Console is currently gated to preview partners, developers building self-hosted MCP servers must build custom voice-to-JSON-RPC test harnesses.<br><br>
-            <strong>Recommendation:</strong> Ship an offline CLI simulator (`alexa-mcp-sim`) that emulates Alexa+ multi-turn tool orchestration and SSML speech rendering against any local `/api/mcp` endpoint.
+            <strong>Friction:</strong> Ambient meeting transcripts from wearables arrive as unstructured dialogue turns without speaker role tagging or technical entity extraction.<br><br>
+            <strong>Recommendation:</strong> Expose an MCP-compatible `bee://memories/action-items` resource stream that emits speaker-attributed technical intents directly to registered Alexa+ MCP servers.
+          </p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+          <div class="text-xs font-bold text-purple-400">4. Fire TV Vega OS / Web App D-Pad Focus Standard</div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            <strong>Friction:</strong> Building 10-foot engineering wallboards for Fire TV requires custom keyCode/spatial navigation handling across web and native views.<br><br>
+            <strong>Recommendation:</strong> Provide a lightweight `@amazon-devices/vega-web-spatial-nav` polyfill so web-based MCP visual cards automatically support Fire TV directional remote controls.
           </p>
         </div>
       </div>
@@ -280,25 +374,49 @@ resource "aws_instance" "batch_processor" {
 
     const hclInput = document.getElementById('hclInput');
     hclInput.value = defaultHCL;
+    let tvTiles = [];
+    let tvFocusIdx = 0;
 
-    // Fetch live server health
     fetch('/api/health').then(r => r.json()).then(h => {
       document.getElementById('modelLabel').innerText = `${h.modelId} (${h.bedrockMode})`;
     }).catch(() => {});
 
     window.switchTab = function(tab) {
-      ['main', 'mcp', 'shape'].forEach(t => {
+      ['main', 'bee', 'firetv', 'mcp', 'shape'].forEach(t => {
         const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
         const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
         if (t === tab) {
           el.classList.remove('hidden');
-          btn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition flex items-center space-x-2';
+          btn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition flex items-center space-x-2';
         } else {
           el.classList.add('hidden');
-          btn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2';
+          btn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2';
         }
       });
       if (tab === 'mcp') runMcpRpc('tools/list');
+      if (tab === 'bee') runBeeIngest();
+      if (tab === 'firetv') loadFireTvWallboard();
+    };
+
+    window.startLiveMicInput = function() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) {
+        alert('Browser SpeechRecognition is only supported in Chrome/Edge. Try clicking one of the voice preset chips!');
+        return;
+      }
+      const rec = new SpeechRec();
+      rec.lang = 'en-US';
+      rec.interimResults = false;
+      const label = document.getElementById('micBtnLabel');
+      label.innerText = 'Listening...';
+      rec.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        label.innerText = 'Speak into Mic';
+        sendAlexaUtterance(transcript);
+      };
+      rec.onerror = () => { label.innerText = 'Speak into Mic'; };
+      rec.onend = () => { label.innerText = 'Speak into Mic'; };
+      rec.start();
     };
 
     window.sendAlexaUtterance = async function(utterance) {
@@ -315,7 +433,11 @@ resource "aws_instance" "batch_processor" {
         const res = await fetch('/api/alexa', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ utterance, hclContent: hclInput.value })
+          body: JSON.stringify({
+            utterance,
+            hclContent: hclInput.value,
+            transcript: document.getElementById('beeTranscriptInput')?.value
+          })
         });
         const data = await res.json();
         titleEl.innerText = data.cardTitle || 'Alexa+ Response';
@@ -329,6 +451,12 @@ resource "aws_instance" "batch_processor" {
           window.speechSynthesis.speak(u);
         }
 
+        if (data.matchedIntent === 'FireTvWallboardLaunch') {
+          switchTab('firetv');
+        } else if (data.matchedIntent === 'BeeWearableMeetingSync' && data.data) {
+          renderBeeItems(data.data);
+        }
+
         if (data.data && data.data.combinedDiff) {
           const diffContainer = document.getElementById('diffContainer');
           const diffCode = document.getElementById('diffCode');
@@ -340,12 +468,97 @@ resource "aws_instance" "batch_processor" {
       }
     };
 
-    window.runMcpRpc = async function(method) {
+    window.runBeeIngest = async function() {
+      const transcript = document.getElementById('beeTranscriptInput').value;
+      const res = await fetch('/api/bee/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript, hclContent: hclInput.value })
+      });
+      const data = await res.json();
+      renderBeeItems(data);
+    };
+
+    function renderBeeItems(data) {
+      const container = document.getElementById('beeActionItemsContainer');
+      container.innerHTML = '';
+      (data.extractedActionItems || []).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5';
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-yellow-300">🎙️ ${item.speaker}</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded ${item.matchedInTerraform ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'}">
+              ${item.matchedInTerraform ? '✓ Verified in Terraform AST (' + item.inferredRuleId + ')' : item.inferredRuleId}
+            </span>
+          </div>
+          <p class="text-xs text-slate-300 italic">"${item.quote}"</p>
+          <div class="text-[11px] text-cyan-300 font-semibold">→ Staged Action: ${item.remediationSummary}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    window.loadFireTvWallboard = async function() {
+      const res = await fetch('/api/firetv/wallboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hclContent: hclInput.value })
+      });
+      const data = await res.json();
+      tvTiles = data.tiles || [];
+      tvFocusIdx = 0;
+      renderFireTvTiles();
+    };
+
+    function renderFireTvTiles() {
+      const grid = document.getElementById('fireTvTilesGrid');
+      grid.innerHTML = '';
+      tvTiles.forEach((t, idx) => {
+        const div = document.createElement('div');
+        div.className = `p-5 rounded-2xl bg-slate-950 border border-slate-800 cursor-pointer transition ${idx === tvFocusIdx ? 'tv-tile-focused' : ''}`;
+        div.onclick = () => { tvFocusIdx = idx; renderFireTvTiles(); selectTvTile(); };
+        div.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/40">${t.severity}</span>
+            <span class="text-xs font-mono text-emerald-400">${t.monthlySavingsUSD > 0 ? '$' + t.monthlySavingsUSD + '/mo' : t.pillar}</span>
+          </div>
+          <div class="text-sm font-black text-white">${t.title}</div>
+          <div class="text-[11px] font-mono text-slate-400 mt-2">${t.ruleId}</div>
+        `;
+        grid.appendChild(div);
+      });
+      if (tvTiles[tvFocusIdx]) {
+        document.getElementById('fireTvPatchPreview').innerText = tvTiles[tvFocusIdx].patch;
+      }
+    }
+
+    window.moveTvFocus = function(delta) {
+      if (!tvTiles.length) return;
+      tvFocusIdx = (tvFocusIdx + delta + tvTiles.length) % tvTiles.length;
+      renderFireTvTiles();
+    };
+
+    window.selectTvTile = function() {
+      if (!tvTiles[tvFocusIdx]) return;
+      document.getElementById('fireTvPatchPreview').innerText = tvTiles[tvFocusIdx].patch;
+    };
+
+    document.addEventListener('keydown', (e) => {
+      const tvSection = document.getElementById('tabFiretv');
+      if (tvSection && !tvSection.classList.contains('hidden')) {
+        if (e.key === 'ArrowRight') moveTvFocus(1);
+        if (e.key === 'ArrowLeft') moveTvFocus(-1);
+        if (e.key === 'Enter') selectTvTile();
+      }
+    });
+
+    window.runMcpRpc = async function(method, toolName = 'get_morning_cloud_briefing') {
       const payload = {
         jsonrpc: '2.0',
         id: Date.now(),
         method,
-        params: method === 'tools/call' ? { name: 'get_morning_cloud_briefing', arguments: { hclContent: hclInput.value, engineerName: 'Akmal' } } : {}
+        params: method === 'tools/call' ? { name: toolName, arguments: { hclContent: hclInput.value, engineerName: 'Akmal' } } : {}
       };
       const res = await fetch('/api/mcp', {
         method: 'POST',

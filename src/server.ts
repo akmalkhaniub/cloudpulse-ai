@@ -72,12 +72,26 @@ export function createCloudPulseServer(): { server: http.Server; agent: BedrockC
       }
 
       if (req.url === '/api/alexa' && req.method === 'POST') {
-        const { utterance, hclContent } = await readJsonBody(req);
+        const { utterance, hclContent, transcript } = await readJsonBody(req);
         if (!utterance || typeof utterance !== 'string') {
           return sendJson(res, 400, { error: 'An Alexa voice "utterance" string is required.' });
         }
-        const voiceRes = await mcp.handleAlexaUtterance(utterance, String(hclContent || ''));
+        const voiceRes = await mcp.handleAlexaUtterance(utterance, String(hclContent || ''), {
+          transcript: typeof transcript === 'string' ? transcript : undefined
+        });
         return sendJson(res, 200, voiceRes);
+      }
+
+      if (req.url === '/api/bee/ingest' && req.method === 'POST') {
+        const { transcript, hclContent } = await readJsonBody(req);
+        const beeRes = await mcp.callTool('ingest_bee_meeting_transcript', { transcript, hclContent });
+        return sendJson(res, 200, beeRes);
+      }
+
+      if (req.url === '/api/firetv/wallboard' && req.method === 'POST') {
+        const { hclContent } = await readJsonBody(req);
+        const tvRes = await mcp.callTool('get_firetv_wallboard_state', { hclContent });
+        return sendJson(res, 200, tvRes);
       }
 
       if (req.url === '/api/audit' && req.method === 'POST') {
