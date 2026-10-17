@@ -35,9 +35,10 @@ export class BedrockConverseAgent {
   systemPrompt: Array<{ text: string }>;
 
   constructor(options: AgentOptions = {}) {
-    this.modelId = options.modelId || 'us.anthropic.claude-3-5-sonnet-20241022-v2:0';
+    this.modelId = options.modelId || process.env.BEDROCK_MODEL_ID || 'amazon.nova-pro-v1:0';
     this.region = options.region || process.env.AWS_REGION || 'us-east-1';
-    this.isMock = options.isMock || !process.env.AWS_ACCESS_KEY_ID || process.env.MOCK_BEDROCK === 'true';
+    const hasAwsEnv = Boolean(process.env.AWS_ACCESS_KEY_ID || process.env.AWS_PROFILE);
+    this.isMock = options.isMock ?? (process.env.MOCK_BEDROCK === 'true' ? true : !hasAwsEnv && process.env.LIVE_BEDROCK !== 'true');
 
     this.toolConfig = {
       tools: [

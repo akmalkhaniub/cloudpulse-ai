@@ -56,7 +56,7 @@ assert(sshPatch.diff.includes('+    cidr_blocks = ["10.0.0.0/16"]'), 'Diff must 
 console.log('   ✅ Generated Git Diff for Security Ingress Patch.');
 
 console.log('4️⃣ Testing Amazon Bedrock Converse API Agent...');
-const bedrockAgent = new BedrockConverseAgent({ modelId: 'us.anthropic.claude-3-5-sonnet-20241022-v2:0' });
+const bedrockAgent = new BedrockConverseAgent({ isMock: true });
 assert(bedrockAgent.toolConfig.tools.length === 3, 'Must define 3 Converse API tools');
 assert(bedrockAgent.toolConfig.tools[0].toolSpec.name === 'audit_iac_manifest', 'Tool 1 must be audit_iac_manifest');
 console.log('   🤖 Bedrock Converse Model:', bedrockAgent.modelId);
