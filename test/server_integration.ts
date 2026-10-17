@@ -42,7 +42,28 @@ try {
   ok('encoded path traversal blocked (403)', (await fetch(base + '/..%2f..%2fserver.ts')).status === 403);
   ok('oversized body rejected (413)', (await post('/api/audit', { hclContent: 'x'.repeat(300 * 1024) })).status === 413);
 
-  console.log(`\n🎉 ALL ${passed} CLOUDPULSE SERVER INTEGRATION ASSERTIONS PASSED.\n`);
+  console.log('\n5️⃣ Alexa+ MCP Server (/api/mcp) & Voice Skill (/api/alexa)...');
+  const mcpInfo = await get('/api/mcp');
+  ok('GET /api/mcp returns 4 registered MCP tools', mcpInfo.status === 200 && mcpInfo.body.tools.length === 4);
+
+  const rpcInit = await post('/api/mcp', { jsonrpc: '2.0', id: 1, method: 'initialize' });
+  ok('MCP JSON-RPC initialize returns serverInfo', rpcInit.status === 200 && rpcInit.body.result.serverInfo.name === 'cloudpulse-alexa-plus-mcp');
+
+  const rpcCall = await post('/api/mcp', {
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'tools/call',
+    params: { name: 'get_morning_cloud_briefing', arguments: { hclContent: HCL, engineerName: 'Akmal' } }
+  });
+  ok('MCP tools/call executes get_morning_cloud_briefing', rpcCall.status === 200 && rpcCall.body.result.structuredContent.violationsCount === 1);
+
+  const alexaBrief = await post('/api/alexa', { utterance: 'Alexa, give me my morning cloud briefing', hclContent: HCL });
+  ok('POST /api/alexa routes morning briefing utterance', alexaBrief.status === 200 && alexaBrief.body.matchedIntent === 'MorningCloudBriefing');
+
+  const alexaShip = await post('/api/alexa', { utterance: 'Alexa, fix all violations and ship a pull request', hclContent: HCL });
+  ok('POST /api/alexa routes PR shipping utterance', alexaShip.status === 200 && alexaShip.body.matchedIntent === 'SynthesizeAndShipPR');
+
+  console.log(`\n🎉 ALL ${passed} CLOUDPULSE SERVER & ALEXA+ MCP INTEGRATION ASSERTIONS PASSED.\n`);
 } finally {
   server.close();
 }

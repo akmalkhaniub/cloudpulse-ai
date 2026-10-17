@@ -3,109 +3,255 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CloudPulse AI — Autonomous AWS Well-Architected & FinOps Agent</title>
+  <title>CloudPulse AI — Alexa+ MCP Skill & Amazon Bedrock FinOps Agent</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @keyframes alexaPulse {
+      0%, 100% { box-shadow: 0 0 12px rgba(0, 202, 255, 0.35), inset 0 0 8px rgba(0, 202, 255, 0.2); }
+      50% { box-shadow: 0 0 28px rgba(0, 202, 255, 0.75), inset 0 0 14px rgba(0, 202, 255, 0.45); }
+    }
+    .alexa-ring-active {
+      animation: alexaPulse 1.8s infinite ease-in-out;
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-amber-500 selection:text-black">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-cyan-400 selection:text-black">
 
   <!-- Header -->
-  <header class="border-b border-slate-800 bg-slate-900/70 backdrop-blur sticky top-0 z-30">
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center text-slate-950 shadow-lg shadow-amber-500/20">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-500 to-amber-500 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/20">
           <i class="fa-solid fa-cloud-bolt text-lg font-black"></i>
         </div>
         <div>
-          <div class="flex items-center space-x-2">
+          <div class="flex flex-wrap items-center gap-2">
             <span class="font-extrabold text-lg tracking-tight">CloudPulse AI</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40">BEDROCK CONVERSE API</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">ALEXA+ MCP SERVER</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">BEDROCK CONVERSE API</span>
           </div>
-          <p class="text-xs text-slate-400">Autonomous AWS Well-Architected & FinOps Remediation Agent</p>
+          <p class="text-xs text-slate-400">Build, Ship, Shape: Amazon Developer Hackathon • Alexa+ Track & AWS Builder</p>
         </div>
       </div>
 
       <div class="flex items-center space-x-3">
-        <span class="text-xs text-slate-400">Model:</span>
-        <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200">Claude 3.5 Sonnet (v2)</span>
+        <div id="statusBadge" class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-emerald-400 flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="modelLabel">amazon.nova-pro-v1:0</span>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Layout -->
-  <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Navigation Tabs -->
+  <div class="max-w-7xl mx-auto px-4 pt-5">
+    <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
+      <button id="tabMainBtn" onclick="switchTab('main')" class="px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition flex items-center space-x-2">
+        <i class="fa-solid fa-microphone-lines"></i>
+        <span>Alexa+ Voice & Bedrock Studio</span>
+      </button>
+      <button id="tabMcpBtn" onclick="switchTab('mcp')" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2">
+        <i class="fa-solid fa-plug-circle-bolt"></i>
+        <span>MCP JSON-RPC 2.0 Inspector (/api/mcp)</span>
+      </button>
+      <button id="tabShapeBtn" onclick="switchTab('shape')" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2">
+        <i class="fa-solid fa-compass-drafting"></i>
+        <span>"Shape" Amazon Developer Feedback</span>
+      </button>
+    </div>
+  </div>
 
-    <!-- Left: IaC Editor (5 cols) -->
-    <div class="lg:col-span-5 space-y-4">
-      <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-        <div class="flex items-center justify-between mb-3">
-          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-2">
-            <i class="fa-solid fa-code text-amber-400"></i>
-            <span>Terraform HCL Manifest</span>
-          </span>
-          <button id="btnLoadSample" class="text-[11px] text-amber-400 hover:underline">Reset Sample</button>
+  <!-- TAB 1: Main Alexa+ & Bedrock Studio -->
+  <main id="tabMain" class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Alexa+ Conversational Voice & MCP Command Bar -->
+    <section class="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-cyan-950/30 to-slate-900 border border-cyan-500/30 shadow-xl">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center space-x-3.5">
+          <div id="alexaOrb" class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white border-2 border-cyan-300 alexa-ring-active shrink-0">
+            <i class="fa-solid fa-waveform-lines text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-cyan-300">Alexa+ Agent Skill & MCP Simulator</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Protocol: 2025-03-26</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-0.5">Trigger voice commands or type an Alexa+ utterance to invoke self-hosted MCP tools and hear spoken synthesis.</p>
+          </div>
         </div>
-        <textarea id="hclInput" rows="18" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition resize-none"></textarea>
-        
-        <button id="btnRunAudit" class="w-full mt-3 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center space-x-2">
-          <i class="fa-solid fa-magnifying-glass-chart"></i>
-          <span>Run Bedrock Converse Audit</span>
+        <div class="flex items-center space-x-2">
+          <label class="flex items-center space-x-1.5 text-xs text-slate-300 cursor-pointer bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800">
+            <input type="checkbox" id="voiceTtsToggle" checked class="accent-cyan-400">
+            <span>🔊 Speak Alexa Reply</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 1-Click Voice Utterance Presets -->
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse for my morning cloud briefing')" class="text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-cyan-950/60 text-cyan-200 border border-cyan-500/30 transition flex items-center space-x-2">
+          <i class="fa-solid fa-sun text-amber-400"></i>
+          <span>"Alexa, give me my morning cloud briefing"</span>
+        </button>
+        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to audit my Terraform with Amazon Bedrock')" class="text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-cyan-950/60 text-cyan-200 border border-cyan-500/30 transition flex items-center space-x-2">
+          <i class="fa-solid fa-shield-halved text-cyan-400"></i>
+          <span>"Alexa, audit my Terraform for security & cost waste"</span>
+        </button>
+        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to fix all violations and ship a GitHub Pull Request')" class="text-xs px-3 py-2 rounded-xl bg-slate-900 hover:bg-emerald-950/60 text-emerald-200 border border-emerald-500/30 transition flex items-center space-x-2">
+          <i class="fa-solid fa-code-pull-request text-emerald-400"></i>
+          <span>"Alexa, fix all violations and ship a GitHub PR"</span>
         </button>
       </div>
-    </div>
 
-    <!-- Right: Bedrock Insights & Git Diffs (7 cols) -->
-    <div class="lg:col-span-7 space-y-6">
-
-      <!-- Metrics Row -->
-      <div class="grid grid-cols-3 gap-4">
-        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-          <span class="text-xs text-slate-400">Violations Detected</span>
-          <div id="metricViolations" class="text-2xl font-black text-red-400 mt-1">3</div>
-        </div>
-        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-          <span class="text-xs text-slate-400">FinOps Monthly Savings</span>
-          <div id="metricSavings" class="text-2xl font-black text-emerald-400 mt-1">$340.00</div>
-        </div>
-        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-          <span class="text-xs text-slate-400">Annualized ROI</span>
-          <div id="metricAnnual" class="text-2xl font-black text-amber-400 mt-1">$4,080/yr</div>
-        </div>
+      <!-- Custom Utterance Input + Spoken Response Card -->
+      <div class="mt-3 flex gap-2">
+        <input id="alexaInput" type="text" placeholder="Ask Alexa+ anything (e.g., 'Alexa, ask CloudPulse to ship the remediation patch')..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400">
+        <button onclick="sendAlexaUtterance(document.getElementById('alexaInput').value)" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs transition">
+          Send to Alexa+ MCP
+        </button>
       </div>
 
-      <!-- Agent Thought & Summary -->
-      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-        <div class="flex items-center space-x-2 text-xs font-bold text-amber-400">
-          <i class="fa-solid fa-brain"></i>
-          <span>Bedrock Agent Reasoning Summary</span>
-        </div>
-        <div id="agentSummary" class="text-xs text-slate-300 leading-relaxed font-sans">
-          Click "Run Bedrock Converse Audit" to trigger autonomous tool execution and multi-pillar inspection.
-        </div>
-      </div>
-
-      <!-- Findings List -->
-      <div class="space-y-3">
-        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Well-Architected Findings</h3>
-        <div id="findingsContainer" class="space-y-3">
-          <!-- Injected via JS -->
-        </div>
-      </div>
-
-      <!-- Diff Preview Modal / Box -->
-      <div id="diffContainer" class="p-4 rounded-2xl bg-slate-900 border border-slate-800 hidden space-y-2">
+      <!-- Alexa Spoken Response Output -->
+      <div id="alexaResponseBox" class="mt-4 p-4 rounded-xl bg-slate-950/90 border border-cyan-500/30 hidden space-y-2">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-emerald-400 flex items-center space-x-1.5">
-            <i class="fa-solid fa-code-compare"></i>
-            <span>Synthesized Zero-Downtime Unified Patch</span>
-          </span>
-          <button id="btnCopyDiff" class="text-[11px] text-slate-400 hover:text-white">Copy Patch</button>
+          <span id="alexaCardTitle" class="text-xs font-bold text-cyan-300">Alexa+ Response</span>
+          <span id="alexaMcpBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">MCP Tool</span>
         </div>
-        <pre id="diffCode" class="p-3 rounded-xl bg-slate-950 font-mono text-[11px] text-slate-300 overflow-x-auto"></pre>
+        <p id="alexaSpeechText" class="text-xs text-slate-200 leading-relaxed italic"></p>
+      </div>
+    </section>
+
+    <!-- Main 2-Column Workspace -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Left: IaC Editor (5 cols) -->
+      <div class="lg:col-span-5 space-y-4">
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-2">
+              <i class="fa-solid fa-code text-amber-400"></i>
+              <span>Terraform / OpenTofu HCL Manifest</span>
+            </span>
+            <button id="btnLoadSample" class="text-[11px] text-amber-400 hover:underline">Reset Sample</button>
+          </div>
+          <textarea id="hclInput" rows="18" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition resize-none"></textarea>
+
+          <button id="btnRunAudit" class="w-full mt-3 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+            <span>Run Bedrock Converse Audit</span>
+          </button>
+        </div>
       </div>
 
+      <!-- Right: Bedrock Insights & Git Diffs (7 cols) -->
+      <div class="lg:col-span-7 space-y-6">
+        <!-- Metrics Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+            <span class="text-[11px] text-slate-400">Violations Detected</span>
+            <div id="metricViolations" class="text-2xl font-black text-red-400 mt-1">4</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+            <span class="text-[11px] text-slate-400">FinOps Monthly Savings</span>
+            <div id="metricSavings" class="text-2xl font-black text-emerald-400 mt-1">$276.48</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+            <span class="text-[11px] text-slate-400">Annualized ROI</span>
+            <div id="metricAnnual" class="text-2xl font-black text-amber-400 mt-1">$3,317.76/yr</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+            <span class="text-[11px] text-slate-400">Detection Benchmark F1</span>
+            <div class="text-2xl font-black text-cyan-400 mt-1">1.000</div>
+          </div>
+        </div>
+
+        <!-- Agent Thought & Summary -->
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2 text-xs font-bold text-amber-400">
+              <i class="fa-solid fa-brain"></i>
+              <span>Amazon Bedrock Converse Reasoning Summary</span>
+            </div>
+            <span id="tokenUsageBadge" class="text-[10px] font-mono text-slate-400">Converse API Ready</span>
+          </div>
+          <div id="agentSummary" class="text-xs text-slate-300 leading-relaxed font-sans">
+            Click "Run Bedrock Converse Audit" or trigger an Alexa+ voice command above.
+          </div>
+        </div>
+
+        <!-- Findings List -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Well-Architected Findings & Synthesized Patches</h3>
+          <div id="findingsContainer" class="space-y-3"></div>
+        </div>
+
+        <!-- Diff Preview Box -->
+        <div id="diffContainer" class="p-4 rounded-2xl bg-slate-900 border border-slate-800 hidden space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-emerald-400 flex items-center space-x-1.5">
+              <i class="fa-solid fa-code-compare"></i>
+              <span>Synthesized Zero-Downtime Unified Patch</span>
+            </span>
+            <button id="btnCopyDiff" class="text-[11px] text-slate-400 hover:text-white">Copy Patch</button>
+          </div>
+          <pre id="diffCode" class="p-3 rounded-xl bg-slate-950 font-mono text-[11px] text-slate-300 overflow-x-auto"></pre>
+        </div>
+      </div>
     </div>
   </main>
+
+  <!-- TAB 2: MCP JSON-RPC 2.0 Inspector -->
+  <section id="tabMcp" class="max-w-7xl mx-auto px-4 py-6 hidden space-y-4">
+    <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-extrabold text-cyan-300">Self-Hosted Alexa+ MCP Server Inspector (`/api/mcp`)</h2>
+          <p class="text-xs text-slate-400">Send raw JSON-RPC 2.0 requests (`initialize`, `tools/list`, `tools/call`) directly to the CloudPulse MCP server.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="runMcpRpc('initialize')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300">initialize</button>
+          <button onclick="runMcpRpc('tools/list')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300">tools/list</button>
+          <button onclick="runMcpRpc('tools/call')" class="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-xs font-mono font-bold text-slate-950">tools/call (briefing)</button>
+        </div>
+      </div>
+      <pre id="mcpRpcOutput" class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto max-h-96">Click any JSON-RPC method button above to inspect the live MCP payload.</pre>
+    </div>
+  </section>
+
+  <!-- TAB 3: "Shape" Amazon Developer Feedback -->
+  <section id="tabShape" class="max-w-7xl mx-auto px-4 py-6 hidden space-y-4">
+    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+      <div>
+        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">MANDATORY "SHAPE" TRACK DELIVERABLE</span>
+        <h2 class="text-base font-extrabold text-white mt-2">Structured Product Feedback for Amazon Developer & Bedrock Engineering Teams</h2>
+        <p class="text-xs text-slate-400 mt-1">Actionable friction points, schema observations, and feature requests gathered while building CloudPulse AI on Alexa+ MCP and Amazon Bedrock Converse API.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+          <div class="text-xs font-bold text-cyan-400">1. Alexa+ MCP Server Schema Alignment</div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            <strong>Friction:</strong> Mapping MCP `inputSchema` (JSON Schema Draft-07) to Bedrock Converse `toolSpec.inputSchema.json` requires manual wrapper conversion.<br><br>
+            <strong>Recommendation:</strong> Provide a native `@amazon-alexa/mcp-bedrock-bridge` utility that automatically translates MCP `tools/list` descriptors into Bedrock `ConverseCommand` `toolConfig` definitions and Alexa+ voice slot types.
+          </p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+          <div class="text-xs font-bold text-amber-400">2. Bedrock Converse Model ID Portability</div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            <strong>Friction:</strong> Cross-region inference profile prefixes (`us.anthropic...`) vs direct foundation model IDs (`amazon.nova-pro-v1:0`) behave differently depending on account marketplace entitlements.<br><br>
+            <strong>Recommendation:</strong> Add a `ConverseCapabilities` discovery call in `@aws-sdk/client-bedrock-runtime` that returns the account's currently callable tool-use models without trial-and-error invocation.
+          </p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+          <div class="text-xs font-bold text-emerald-400">3. Local Web Simulator for Gated Alexa+ Skills</div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            <strong>Friction:</strong> Because the Alexa+ Developer Console is currently gated to preview partners, developers building self-hosted MCP servers must build custom voice-to-JSON-RPC test harnesses.<br><br>
+            <strong>Recommendation:</strong> Ship an offline CLI simulator (`alexa-mcp-sim`) that emulates Alexa+ multi-turn tool orchestration and SSML speech rendering against any local `/api/mcp` endpoint.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <script>
     const defaultHCL = `resource "aws_security_group" "web_sg" {
@@ -135,6 +281,81 @@ resource "aws_instance" "batch_processor" {
     const hclInput = document.getElementById('hclInput');
     hclInput.value = defaultHCL;
 
+    // Fetch live server health
+    fetch('/api/health').then(r => r.json()).then(h => {
+      document.getElementById('modelLabel').innerText = `${h.modelId} (${h.bedrockMode})`;
+    }).catch(() => {});
+
+    window.switchTab = function(tab) {
+      ['main', 'mcp', 'shape'].forEach(t => {
+        const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+        const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
+        if (t === tab) {
+          el.classList.remove('hidden');
+          btn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition flex items-center space-x-2';
+        } else {
+          el.classList.add('hidden');
+          btn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white transition flex items-center space-x-2';
+        }
+      });
+      if (tab === 'mcp') runMcpRpc('tools/list');
+    };
+
+    window.sendAlexaUtterance = async function(utterance) {
+      if (!utterance) return;
+      document.getElementById('alexaInput').value = utterance;
+      const box = document.getElementById('alexaResponseBox');
+      const speechEl = document.getElementById('alexaSpeechText');
+      const titleEl = document.getElementById('alexaCardTitle');
+      const badgeEl = document.getElementById('alexaMcpBadge');
+      box.classList.remove('hidden');
+      speechEl.innerText = 'Alexa+ is invoking CloudPulse MCP server...';
+
+      try {
+        const res = await fetch('/api/alexa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ utterance, hclContent: hclInput.value })
+        });
+        const data = await res.json();
+        titleEl.innerText = data.cardTitle || 'Alexa+ Response';
+        badgeEl.innerText = `MCP ${data.mcpMethodCalled} → ${data.mcpToolName}`;
+        speechEl.innerText = `"${data.spokenSpeech}"`;
+
+        if (document.getElementById('voiceTtsToggle').checked && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(data.spokenSpeech);
+          u.rate = 1.04;
+          window.speechSynthesis.speak(u);
+        }
+
+        if (data.data && data.data.combinedDiff) {
+          const diffContainer = document.getElementById('diffContainer');
+          const diffCode = document.getElementById('diffCode');
+          diffCode.innerText = data.data.combinedDiff;
+          diffContainer.classList.remove('hidden');
+        }
+      } catch (err) {
+        speechEl.innerText = 'Error: ' + err.message;
+      }
+    };
+
+    window.runMcpRpc = async function(method) {
+      const payload = {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        method,
+        params: method === 'tools/call' ? { name: 'get_morning_cloud_briefing', arguments: { hclContent: hclInput.value, engineerName: 'Akmal' } } : {}
+      };
+      const res = await fetch('/api/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      document.getElementById('mcpRpcOutput').innerText = JSON.stringify({ request: payload, response: data }, null, 2);
+    };
+
     document.getElementById('btnLoadSample').onclick = () => {
       hclInput.value = defaultHCL;
     };
@@ -159,13 +380,20 @@ resource "aws_instance" "batch_processor" {
     };
 
     function renderAudit(data) {
-      const { audit, output, patches } = data;
+      const { audit, output, patches, usage, modelId } = data;
       document.getElementById('metricViolations').innerText = audit.violationsCount;
-      document.getElementById('metricSavings').innerText = `$${audit.totalMonthlySavingsUSD}.00`;
-      document.getElementById('metricAnnual').innerText = `$${audit.totalMonthlySavingsUSD * 12}/yr`;
+      document.getElementById('metricSavings').innerText = `$${audit.totalMonthlySavingsUSD}`;
+      document.getElementById('metricAnnual').innerText = `$${Math.round(audit.totalMonthlySavingsUSD * 12 * 100) / 100}/yr`;
+
+      if (usage && usage.totalTokens > 0) {
+        document.getElementById('tokenUsageBadge').innerText = `${modelId} • ${usage.totalTokens} tokens`;
+      }
 
       if (output && output.message && output.message.content) {
-        document.getElementById('agentSummary').innerHTML = output.message.content[0].text.replace(/\n/g, '<br>');
+        const textBlock = output.message.content.find(c => c.text) || output.message.content[0];
+        if (textBlock && textBlock.text) {
+          document.getElementById('agentSummary').innerHTML = textBlock.text.replace(/\n/g, '<br>');
+        }
       }
 
       const container = document.getElementById('findingsContainer');
@@ -184,7 +412,7 @@ resource "aws_instance" "batch_processor" {
         card.innerHTML = `
           <div class="flex items-center justify-between">
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeColors[f.severity]}">${f.severity} • ${f.pillar}</span>
-            <span class="text-xs font-mono text-emerald-400">${f.monthlySavingsUSD > 0 ? '+$' + f.monthlySavingsUSD + '/mo' : 'Security Guardrail'}</span>
+            <span class="text-xs font-mono text-emerald-400">${f.monthlySavingsUSD > 0 ? '+$' + f.monthlySavingsUSD + '/mo' : 'Security / Reliability Guardrail'}</span>
           </div>
           <h4 class="text-xs font-bold text-white">${f.title}</h4>
           <p class="text-[11px] text-slate-400">${f.description}</p>
@@ -216,7 +444,6 @@ resource "aws_instance" "batch_processor" {
       alert('Unified git patch copied to clipboard!');
     };
 
-    // Run initial audit on load
     document.getElementById('btnRunAudit').click();
   </script>
 </body>

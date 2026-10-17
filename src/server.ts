@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { BedrockConverseAgent } from './bedrock_converse_agent.js';
 import { RemediationSynthesizer } from './remediation_synthesizer.js';
+import { AlexaMcpServer } from './alexa_mcp_server.js';
 import { resolveSafePath, readJsonBody } from './util.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -32,8 +33,9 @@ const sendJson = (res: http.ServerResponse, status: number, payload: unknown): v
 };
 
 /** Build the CloudPulse AI server without binding a port (testable). */
-export function createCloudPulseServer(): { server: http.Server; agent: BedrockConverseAgent } {
+export function createCloudPulseServer(): { server: http.Server; agent: BedrockConverseAgent; mcp: AlexaMcpServer } {
   const agent = new BedrockConverseAgent();
+  const mcp = new AlexaMcpServer(agent);
 
   const server = http.createServer(async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -48,7 +50,34 @@ export function createCloudPulseServer(): { server: http.Server; agent: BedrockC
 
     try {
       if (req.url === '/api/health' && req.method === 'GET') {
-        return sendJson(res, 200, { status: 'online', service: 'CloudPulse AI', timestamp: new Date().toISOString(), bedrockMode: agent.isMock ? 'simulator' : 'live', modelId: agent.modelId });
+        return sendJson(res, 200, {
+          status: 'online',
+          service: 'CloudPulse AI',
+          timestamp: new Date().toISOString(),
+          bedrockMode: agent.isMock ? 'simulator' : 'live',
+          modelId: agent.modelId,
+          mcpServer: mcp.serverInfo.name,
+          mcpToolsCount: mcp.listTools().length
+        });
+      }
+
+      if (req.url === '/api/mcp' && req.method === 'GET') {
+        return sendJson(res, 200, { serverInfo: mcp.serverInfo, tools: mcp.listTools() });
+      }
+
+      if (req.url === '/api/mcp' && req.method === 'POST') {
+        const rpcReq = await readJsonBody(req);
+        const rpcRes = await mcp.handleJsonRpc(rpcReq as any);
+        return sendJson(res, 200, rpcRes);
+      }
+
+      if (req.url === '/api/alexa' && req.method === 'POST') {
+        const { utterance, hclContent } = await readJsonBody(req);
+        if (!utterance || typeof utterance !== 'string') {
+          return sendJson(res, 400, { error: 'An Alexa voice "utterance" string is required.' });
+        }
+        const voiceRes = await mcp.handleAlexaUtterance(utterance, String(hclContent || ''));
+        return sendJson(res, 200, voiceRes);
       }
 
       if (req.url === '/api/audit' && req.method === 'POST') {
@@ -86,7 +115,7 @@ export function createCloudPulseServer(): { server: http.Server; agent: BedrockC
     }
   });
 
-  return { server, agent };
+  return { server, agent, mcp };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === __filename;
