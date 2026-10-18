@@ -19,13 +19,20 @@ export interface JsonRpcRequest {
   id: string | number | null;
   method: string;
   params?: Record<string, any>;
+  _meta?: {
+    'io.modelcontextprotocol/protocolVersion'?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface JsonRpcResponse {
   jsonrpc: '2.0';
   id: string | number | null;
   result?: unknown;
-  error?: { code: number; message: string };
+  error?: { code: number; message: string; data?: Record<string, unknown> };
+  _meta?: {
+    'io.modelcontextprotocol/protocolVersion': string;
+  };
 }
 
 export interface AlexaVoiceResponse {
@@ -55,105 +62,265 @@ export const SAMPLE_BEE_TRANSCRIPT = `[09:14:02] Sarah (SRE Lead): Morning team.
 [09:14:19] Alex (Platform Eng): Good catch. Also, app_db Postgres in staging is running without storage encryption or Multi-AZ failover.
 [09:14:41] Priya (FinOps): And please check batch_processor — it's sitting on an m5.4xlarge burning budget when a Graviton m7g.xlarge would cut costs by over $270 a month.`;
 
+export const SUPPORTED_MCP_VERSIONS = ['2026-07-28', '2025-11-25', '2025-06-18', '2025-03-26'] as const;
+
 export class AlexaMcpServer {
   readonly serverInfo = {
     name: 'cloudpulse-alexa-plus-mcp',
-    version: '1.1.0',
-    protocolVersion: '2025-03-26',
-    ecosystem: 'Alexa+ MCP • Amazon Bee Wearable • Amazon Fire TV War-Room • AWS Bedrock Converse'
+    version: '1.2.0',
+    protocolVersion: '2026-07-28',
+    supportedProtocolVersions: SUPPORTED_MCP_VERSIONS,
+    transportMode: 'stateless-streamable-http',
+    ecosystem: 'Alexa+ MCP (2026-07-28) • Amazon Bee Wearable • Amazon Fire TV War-Room • AWS Bedrock Converse'
   };
 
   constructor(private bedrockAgent: BedrockConverseAgent) {}
 
-  /** Standard MCP tools/list descriptor for Alexa+ Agent Skill discovery. */
+  /** MCP 2026-07-28 tools/list descriptor with title, JSON Schema 2020-12 inputSchema, outputSchema, and annotations. */
   listTools() {
     return [
       {
         name: 'get_morning_cloud_briefing',
+        title: 'Alexa+ Morning Cloud & FinOps Briefing',
         description: 'Delivers an executive Alexa+ morning voice briefing covering AWS security posture, Well-Architected violations, and monthly/annual FinOps savings.',
         inputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
           properties: {
             hclContent: { type: 'string', description: 'Terraform / OpenTofu HCL manifest to inspect' },
             engineerName: { type: 'string', description: 'Name of the engineer or CTO' }
           },
           required: ['hclContent']
+        },
+        outputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            engineerName: { type: 'string' },
+            overallScore: { type: 'number' },
+            resourcesScanned: { type: 'number' },
+            violationsCount: { type: 'number' },
+            criticalCount: { type: 'number' },
+            monthlySavingsUsd: { type: 'number' },
+            annualSavingsUsd: { type: 'number' },
+            spokenBriefing: { type: 'string' }
+          },
+          required: ['overallScore', 'violationsCount', 'monthlySavingsUsd', 'spokenBriefing']
+        },
+        annotations: {
+          title: 'Morning Cloud Briefing',
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
         }
       },
       {
         name: 'audit_iac_manifest',
+        title: 'Multi-Pillar AWS Well-Architected & Bedrock Audit',
         description: 'Performs a full multi-pillar AWS Well-Architected & FinOps audit via Amazon Bedrock Converse API.',
         inputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
           properties: {
             hclContent: { type: 'string', description: 'Terraform / OpenTofu HCL manifest' }
           },
           required: ['hclContent']
+        },
+        outputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            overallScore: { type: 'number' },
+            totalMonthlySavingsUsd: { type: 'number' },
+            findingsCount: { type: 'number' },
+            bedrockModelId: { type: 'string' },
+            bedrockReply: { type: 'string' }
+          },
+          required: ['overallScore', 'totalMonthlySavingsUsd', 'findingsCount']
+        },
+        annotations: {
+          title: 'Well-Architected Audit',
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: true
         }
       },
       {
         name: 'synthesize_remediation_diff',
+        title: 'Zero-Downtime Terraform Git Diff Synthesizer',
         description: 'Synthesizes zero-downtime unified Git diffs for all detected AWS Well-Architected violations.',
         inputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
           properties: {
             hclContent: { type: 'string', description: 'Terraform / OpenTofu HCL manifest' },
             ruleId: { type: 'string', description: 'Optional specific ruleId to patch' }
           },
           required: ['hclContent']
+        },
+        outputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            patchesCount: { type: 'number' },
+            combinedDiff: { type: 'string' }
+          },
+          required: ['patchesCount', 'combinedDiff']
+        },
+        annotations: {
+          title: 'Synthesize Remediation Diff',
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
         }
       },
       {
         name: 'ship_github_remediation_pr',
+        title: 'Autonomous GitHub Remediation PR Shipper',
         description: 'Stages or opens a GitHub Pull Request containing the verified Terraform remediation patches.',
         inputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
           properties: {
             hclContent: { type: 'string', description: 'Terraform / OpenTofu HCL manifest' },
             branchName: { type: 'string', description: 'Target remediation branch name' }
           },
           required: ['hclContent']
+        },
+        outputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            patchesCount: { type: 'number' },
+            totalMonthlySavingsUsd: { type: 'number' },
+            combinedDiff: { type: 'string' },
+            spokenSummary: { type: 'string' }
+          },
+          required: ['patchesCount', 'combinedDiff', 'spokenSummary']
+        },
+        annotations: {
+          title: 'Ship GitHub Remediation PR',
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: true
         }
       },
       {
         name: 'ingest_bee_meeting_transcript',
+        title: 'Amazon Bee Wearable Standup Transcript Sync',
         description: 'Ingests an ambient standup/architecture meeting transcript from the Amazon Bee AI Wearable, extracts spoken cloud action items, cross-verifies them against Terraform AST, and stages remediation patches.',
         inputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
           properties: {
             transcript: { type: 'string', description: 'Ambient meeting transcript captured by Amazon Bee wearable' },
             hclContent: { type: 'string', description: 'Terraform / OpenTofu HCL manifest to cross-reference' }
           },
           required: ['hclContent']
+        },
+        outputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            device: { type: 'string' },
+            verifiedInTerraformCount: { type: 'number' },
+            totalMonthlySavingsUsd: { type: 'number' },
+            spokenSummary: { type: 'string' }
+          },
+          required: ['device', 'verifiedInTerraformCount', 'spokenSummary']
+        },
+        annotations: {
+          title: 'Ingest Bee Wearable Standup',
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
         }
       },
       {
         name: 'get_firetv_wallboard_state',
+        title: 'Amazon Fire TV 10-Foot NOC War-Room Wallboard',
         description: 'Returns a 10-foot Amazon Fire TV NOC War-Room Wallboard payload formatted for D-Pad remote navigation (ArrowLeft/ArrowRight/Enter).',
         inputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
           properties: {
             hclContent: { type: 'string', description: 'Terraform / OpenTofu HCL manifest' }
           },
           required: ['hclContent']
+        },
+        outputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            deviceTarget: { type: 'string' },
+            dpadNavigationSupported: { type: 'boolean' },
+            overallScore: { type: 'number' },
+            monthlySavingsUsd: { type: 'number' },
+            spokenSummary: { type: 'string' }
+          },
+          required: ['deviceTarget', 'dpadNavigationSupported', 'overallScore']
+        },
+        annotations: {
+          title: 'Fire TV War-Room Wallboard',
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
         }
       }
     ];
   }
 
-  /** Standard JSON-RPC 2.0 MCP handler (`initialize`, `tools/list`, `tools/call`). */
-  async handleJsonRpc(req: JsonRpcRequest): Promise<JsonRpcResponse> {
-    const id = req.id ?? null;
+  /**
+   * MCP 2026-07-28 Stateless JSON-RPC 2.0 handler with backwards-compatible `initialize` handshake.
+   * Supports per-request `_meta["io.modelcontextprotocol/protocolVersion"]` version declaration.
+   */
+  async handleJsonRpc(req: JsonRpcRequest, headerProtocolVersion?: string): Promise<JsonRpcResponse> {
+    const id = req?.id ?? null;
     if (!req || req.jsonrpc !== '2.0' || typeof req.method !== 'string') {
       return { jsonrpc: '2.0', id, error: { code: -32600, message: 'Invalid JSON-RPC 2.0 request' } };
     }
+
+    const requestedVersion =
+      req._meta?.['io.modelcontextprotocol/protocolVersion'] ??
+      req.params?._meta?.['io.modelcontextprotocol/protocolVersion'] ??
+      req.params?.protocolVersion ??
+      headerProtocolVersion ??
+      this.serverInfo.protocolVersion;
+
+    if (
+      typeof requestedVersion === 'string' &&
+      !(SUPPORTED_MCP_VERSIONS as readonly string[]).includes(requestedVersion)
+    ) {
+      return {
+        jsonrpc: '2.0',
+        id,
+        error: {
+          code: -32602,
+          message: `UnsupportedProtocolVersionError: Unsupported MCP protocol version '${requestedVersion}'`,
+          data: {
+            requestedVersion,
+            supportedVersions: SUPPORTED_MCP_VERSIONS
+          }
+        }
+      };
+    }
+
+    const activeVersion = typeof requestedVersion === 'string' ? requestedVersion : this.serverInfo.protocolVersion;
+    const responseMeta = { 'io.modelcontextprotocol/protocolVersion': activeVersion };
 
     if (req.method === 'initialize') {
       return {
         jsonrpc: '2.0',
         id,
+        _meta: responseMeta,
         result: {
-          protocolVersion: this.serverInfo.protocolVersion,
+          protocolVersion: activeVersion,
           serverInfo: this.serverInfo,
           capabilities: { tools: { listChanged: false } }
         }
@@ -161,7 +328,12 @@ export class AlexaMcpServer {
     }
 
     if (req.method === 'tools/list') {
-      return { jsonrpc: '2.0', id, result: { tools: this.listTools() } };
+      return {
+        jsonrpc: '2.0',
+        id,
+        _meta: responseMeta,
+        result: { tools: this.listTools() }
+      };
     }
 
     if (req.method === 'tools/call') {
@@ -172,6 +344,7 @@ export class AlexaMcpServer {
         return {
           jsonrpc: '2.0',
           id,
+          _meta: responseMeta,
           result: {
             content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
             structuredContent: payload,
@@ -182,12 +355,13 @@ export class AlexaMcpServer {
         return {
           jsonrpc: '2.0',
           id,
+          _meta: responseMeta,
           error: { code: -32602, message: (err as Error).message }
         };
       }
     }
 
-    return { jsonrpc: '2.0', id, error: { code: -32601, message: `Method not found: ${req.method}` } };
+    return { jsonrpc: '2.0', id, _meta: responseMeta, error: { code: -32601, message: `Method not found: ${req.method}` } };
   }
 
   /** Parse an Amazon Bee wearable transcript and correlate spoken concerns with AST findings. */

@@ -42,20 +42,35 @@ try {
   ok('encoded path traversal blocked (403)', (await fetch(base + '/..%2f..%2fserver.ts')).status === 403);
   ok('oversized body rejected (413)', (await post('/api/audit', { hclContent: 'x'.repeat(300 * 1024) })).status === 413);
 
-  console.log('\n5️⃣ Alexa+ MCP Server (/api/mcp), Bee Wearable (/api/bee/ingest), & Fire TV (/api/firetv/wallboard)...');
+  console.log('\n5️⃣ Alexa+ MCP Server (/api/mcp • Spec 2026-07-28), Bee Wearable (/api/bee/ingest), & Fire TV (/api/firetv/wallboard)...');
   const mcpInfo = await get('/api/mcp');
-  ok('GET /api/mcp returns 6 registered MCP tools', mcpInfo.status === 200 && mcpInfo.body.tools.length === 6);
+  ok('GET /api/mcp returns 6 registered MCP tools & protocolVersion 2026-07-28', mcpInfo.status === 200 && mcpInfo.body.tools.length === 6 && mcpInfo.body.serverInfo.protocolVersion === '2026-07-28');
+  ok('All 6 MCP tools include MCP 2026-07-28 title, outputSchema (JSON Schema 2020-12), and annotations', mcpInfo.body.tools.every((t: any) => t.title && t.outputSchema?.$schema === 'https://json-schema.org/draft/2020-12/schema' && t.annotations));
 
-  const rpcInit = await post('/api/mcp', { jsonrpc: '2.0', id: 1, method: 'initialize' });
-  ok('MCP JSON-RPC initialize returns serverInfo', rpcInit.status === 200 && rpcInit.body.result.serverInfo.name === 'cloudpulse-alexa-plus-mcp');
+  const rpcInit = await post('/api/mcp', {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'initialize',
+    _meta: { 'io.modelcontextprotocol/protocolVersion': '2026-07-28' }
+  });
+  ok('MCP JSON-RPC initialize returns serverInfo & _meta protocolVersion 2026-07-28', rpcInit.status === 200 && rpcInit.body.result.serverInfo.name === 'cloudpulse-alexa-plus-mcp' && rpcInit.body._meta['io.modelcontextprotocol/protocolVersion'] === '2026-07-28');
+
+  const rpcBadVer = await post('/api/mcp', {
+    jsonrpc: '2.0',
+    id: 99,
+    method: 'tools/list',
+    _meta: { 'io.modelcontextprotocol/protocolVersion': '1999-01-01' }
+  });
+  ok('MCP 2026-07-28 rejects unknown protocolVersion with UnsupportedProtocolVersionError', rpcBadVer.body.error?.code === -32602 && Array.isArray(rpcBadVer.body.error?.data?.supportedVersions));
 
   const rpcCall = await post('/api/mcp', {
     jsonrpc: '2.0',
     id: 2,
     method: 'tools/call',
+    _meta: { 'io.modelcontextprotocol/protocolVersion': '2026-07-28' },
     params: { name: 'get_morning_cloud_briefing', arguments: { hclContent: HCL, engineerName: 'Akmal' } }
   });
-  ok('MCP tools/call executes get_morning_cloud_briefing', rpcCall.status === 200 && rpcCall.body.result.structuredContent.violationsCount === 1);
+  ok('MCP tools/call executes get_morning_cloud_briefing with structuredContent', rpcCall.status === 200 && rpcCall.body.result.structuredContent.violationsCount === 1);
 
   const alexaBrief = await post('/api/alexa', { utterance: 'Alexa, give me my morning cloud briefing', hclContent: HCL });
   ok('POST /api/alexa routes morning briefing utterance', alexaBrief.status === 200 && alexaBrief.body.matchedIntent === 'MorningCloudBriefing');

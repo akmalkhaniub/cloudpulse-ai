@@ -290,18 +290,18 @@
     <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 class="text-sm font-extrabold text-cyan-300">Self-Hosted Alexa+ MCP Server Inspector (`/api/mcp`)</h2>
-          <p class="text-xs text-slate-400">Send raw JSON-RPC 2.0 requests (`initialize`, `tools/list`, `tools/call`) directly to the CloudPulse MCP server.</p>
+          <h2 class="text-sm font-extrabold text-cyan-300">Self-Hosted Alexa+ MCP Server Inspector (`/api/mcp` • Spec `2026-07-28`)</h2>
+          <p class="text-xs text-slate-400">Stateless MCP `2026-07-28` JSON-RPC 2.0 server with `_meta["io.modelcontextprotocol/protocolVersion"]`, JSON Schema 2020-12 `outputSchema`, and backwards-compatible `2025-11-25` `initialize` support.</p>
         </div>
         <div class="flex flex-wrap gap-2">
           <button onclick="runMcpRpc('initialize')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300">initialize</button>
-          <button onclick="runMcpRpc('tools/list')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300">tools/list (6 tools)</button>
+          <button onclick="runMcpRpc('tools/list')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300">tools/list (6 tools + outputSchema)</button>
           <button onclick="runMcpRpc('tools/call', 'get_morning_cloud_briefing')" class="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-xs font-mono font-bold text-slate-950">tools/call (briefing)</button>
           <button onclick="runMcpRpc('tools/call', 'ingest_bee_meeting_transcript')" class="px-3 py-1.5 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-xs font-mono font-bold text-slate-950">tools/call (bee_sync)</button>
           <button onclick="runMcpRpc('tools/call', 'get_firetv_wallboard_state')" class="px-3 py-1.5 rounded-lg bg-purple-400 hover:bg-purple-300 text-xs font-mono font-bold text-slate-950">tools/call (firetv)</button>
         </div>
       </div>
-      <pre id="mcpRpcOutput" class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto max-h-96">Click any JSON-RPC method button above to inspect the live MCP payload.</pre>
+      <pre id="mcpRpcOutput" class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto max-h-96">Click any JSON-RPC method button above to inspect the live MCP 2026-07-28 payload.</pre>
     </div>
   </section>
 
@@ -311,15 +311,15 @@
       <div>
         <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">MANDATORY "SHAPE" TRACK DELIVERABLE</span>
         <h2 class="text-base font-extrabold text-white mt-2">Structured Product Feedback for Amazon Developer & Bedrock Engineering Teams</h2>
-        <p class="text-xs text-slate-400 mt-1">Actionable friction points, schema observations, and feature requests gathered while building CloudPulse AI across Alexa+ MCP, Amazon Bee, Fire TV, and Amazon Bedrock Converse API.</p>
+        <p class="text-xs text-slate-400 mt-1">Actionable friction points, schema observations, and feature requests gathered while building CloudPulse AI across Alexa+ MCP (`2026-07-28`), Amazon Bee, Fire TV, and Amazon Bedrock Converse API.</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-          <div class="text-xs font-bold text-cyan-400">1. Alexa+ MCP Server Schema Alignment</div>
+          <div class="text-xs font-bold text-cyan-400">1. Alexa+ MCP (2026-07-28) & Bedrock Schema Alignment</div>
           <p class="text-xs text-slate-300 leading-relaxed">
-            <strong>Friction:</strong> Mapping MCP `inputSchema` (JSON Schema Draft-07) to Bedrock Converse `toolSpec.inputSchema.json` requires manual wrapper conversion.<br><br>
-            <strong>Recommendation:</strong> Provide a native `@amazon-alexa/mcp-bedrock-bridge` utility that automatically translates MCP `tools/list` descriptors into Bedrock `ConverseCommand` `toolConfig` definitions and Alexa+ voice slot types.
+            <strong>Friction:</strong> Mapping MCP `2026-07-28` JSON Schema 2020-12 `inputSchema` / `outputSchema` to Bedrock Converse `toolSpec.inputSchema.json` requires manual wrapper conversion.<br><br>
+            <strong>Recommendation:</strong> Provide a native `@amazon-alexa/mcp-bedrock-bridge` utility that automatically translates MCP `2026-07-28` `tools/list` descriptors into Bedrock `ConverseCommand` `toolConfig` definitions and Alexa+ voice slot types.
           </p>
         </div>
         <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
@@ -558,11 +558,17 @@ resource "aws_instance" "batch_processor" {
         jsonrpc: '2.0',
         id: Date.now(),
         method,
+        _meta: {
+          'io.modelcontextprotocol/protocolVersion': '2026-07-28'
+        },
         params: method === 'tools/call' ? { name: toolName, arguments: { hclContent: hclInput.value, engineerName: 'Akmal' } } : {}
       };
       const res = await fetch('/api/mcp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'MCP-Protocol-Version': '2026-07-28'
+        },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
