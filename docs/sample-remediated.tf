@@ -19,6 +19,7 @@ resource "aws_db_instance" "app_db" {
   instance_class    = "db.t3.medium"
   storage_encrypted = true
   kms_key_id        = "alias/aws/rds"
+  multi_az          = true
 }
 
 resource "aws_instance" "batch_processor" {

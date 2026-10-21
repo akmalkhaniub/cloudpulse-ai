@@ -146,7 +146,7 @@
 
       <!-- Right: Operational Status & Theme -->
       <div class="flex items-center space-x-3">
-        <div class="flex items-center space-x-2 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+        <div class="hidden sm:flex items-center space-x-2 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
           <span id="systemStatusLabel">Connected to AWS Bedrock</span>
         </div>
@@ -316,7 +316,7 @@
     <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span class="text-[11px] font-medium text-amber-600 dark:text-amber-400">Amazon Bee Wearable Audio Ingestion</span>
+          <span class="text-[11px] font-medium text-amber-600 dark:text-amber-400">Concept · Bee-style standup transcript (sample data, no live device)</span>
           <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Standup Transcript → Verified Infrastructure Patches</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Captures spoken engineering concerns from morning standups, maps them to AWS Well-Architected rules, and verifies them against the active Terraform AST.</p>
         </div>
@@ -351,7 +351,7 @@
         <div>
           <span class="text-[11px] font-medium text-purple-600 dark:text-purple-400">10-Foot Wall Display Interface</span>
           <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Engineering War-Room Posture Board</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Optimized for Fire TV wall displays. Navigate tiles using keyboard arrows (<kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">◀</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">▶</kbd>) and <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">Enter</kbd>.</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Concept · browser prototype of a Fire TV-style wall display. Navigate tiles using keyboard arrows (<kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">◀</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">▶</kbd>) and <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">Enter</kbd>.</p>
         </div>
         <div class="flex gap-2">
           <button onclick="moveTvFocus(-1)" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium border border-slate-200 dark:border-slate-700">◀ D-Pad Left</button>
@@ -450,7 +450,7 @@
             <span>Bee Wearable Structured Webhook Dispatches</span>
           </div>
           <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            <strong>Friction:</strong> Wearable meeting transcripts stream unformatted conversational audio without infrastructure entity tagging.<br>
+            <strong>Feature request (concept, not built on Bee):</strong> Diarized meeting transcripts arrive without infrastructure entity tagging.<br>
             <strong>Recommendation:</strong> Allow Bee apps to register domain entity extractors that emit signed JSON-RPC events directly to self-hosted MCP endpoints.
           </p>
         </div>
@@ -461,7 +461,7 @@
             <span>Fire TV Web App Spatial Navigation Standard</span>
           </div>
           <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            <strong>Friction:</strong> Creating 10-foot NOC interfaces for Fire TV requires custom key-down spatial focus handlers.<br>
+            <strong>Feature request (concept, not built on Fire TV):</strong> Our browser prototype needed custom key-down spatial focus handlers.<br>
             <strong>Recommendation:</strong> Release an official web spatial navigation polyfill for Fire TV / Vega OS browsers.
           </p>
         </div>
@@ -531,6 +531,28 @@ resource "aws_instance" "batch_processor" {
   ami           = "ami-0c55b159cbfafe1f0"
   instance_type = "m5.4xlarge"
 }`;
+
+    const PILLAR_LABELS = { SECURITY: 'Security Guardrail', RELIABILITY: 'Reliability', COST_OPTIMIZATION: 'Cost Optimization' };
+    function fmtUSD(n) {
+      return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    // Render a unified diff with + green / - red / @@ cyan lines (textContent only, no HTML injection).
+    function renderDiff(diffText, targetId = 'diffCode') {
+      const pre = document.getElementById(targetId);
+      pre.textContent = '';
+      String(diffText || '').split('\n').forEach((line) => {
+        const span = document.createElement('span');
+        span.className = 'block whitespace-pre';
+        if (line.startsWith('+++') || line.startsWith('---')) span.className += ' text-slate-400 font-semibold';
+        else if (line.startsWith('@@')) span.className += ' text-cyan-300';
+        else if (line.startsWith('+')) span.className += ' text-emerald-300 bg-emerald-900/30';
+        else if (line.startsWith('-')) span.className += ' text-rose-300 bg-rose-900/30';
+        else if (line.startsWith('#')) span.className += ' text-slate-400 italic';
+        span.textContent = line || ' ';
+        pre.appendChild(span);
+      });
+    }
+    window.renderDiff = renderDiff;
 
     const hclInput = document.getElementById('hclInput');
     hclInput.value = defaultHCL;
@@ -628,8 +650,7 @@ resource "aws_instance" "batch_processor" {
 
         if (data.data && data.data.combinedDiff) {
           const diffContainer = document.getElementById('diffContainer');
-          const diffCode = document.getElementById('diffCode');
-          diffCode.innerText = data.data.combinedDiff;
+          renderDiff(data.data.combinedDiff);
           diffContainer.classList.remove('hidden');
           diffContainer.scrollIntoView({ behavior: 'smooth' });
         }
@@ -691,7 +712,7 @@ resource "aws_instance" "batch_processor" {
         div.innerHTML = `
           <div class="flex items-center justify-between mb-2">
             <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900">${t.severity}</span>
-            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">${t.monthlySavingsUSD > 0 ? '$' + t.monthlySavingsUSD + '/mo' : t.pillar}</span>
+            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">${t.monthlySavingsUSD > 0 ? fmtUSD(t.monthlySavingsUSD) + '/mo' : (PILLAR_LABELS[t.pillar] || t.pillar)}</span>
           </div>
           <div class="text-xs font-semibold text-slate-900 dark:text-white">${t.title}</div>
           <div class="text-[10px] font-mono text-slate-400 mt-1">${t.ruleId}</div>
@@ -699,7 +720,7 @@ resource "aws_instance" "batch_processor" {
         grid.appendChild(div);
       });
       if (tvTiles[tvFocusIdx]) {
-        document.getElementById('fireTvPatchPreview').innerText = tvTiles[tvFocusIdx].patch;
+        renderDiff(tvTiles[tvFocusIdx].patch || '# No safe automatic fix for this finding. Flagged for manual review.', 'fireTvPatchPreview');
       }
     }
 
@@ -711,7 +732,7 @@ resource "aws_instance" "batch_processor" {
 
     window.selectTvTile = function() {
       if (!tvTiles[tvFocusIdx]) return;
-      document.getElementById('fireTvPatchPreview').innerText = tvTiles[tvFocusIdx].patch;
+      renderDiff(tvTiles[tvFocusIdx].patch || '# No safe automatic fix for this finding. Flagged for manual review.', 'fireTvPatchPreview');
     };
 
     document.addEventListener('keydown', (e) => {
@@ -836,7 +857,7 @@ resource "aws_instance" "batch_processor" {
               <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeColors[f.severity]}">${f.severity}</span>
               <span class="text-xs font-semibold text-slate-900 dark:text-white">${f.title}</span>
             </div>
-            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">${f.monthlySavingsUSD > 0 ? '+$' + f.monthlySavingsUSD + '/mo' : 'Security Guardrail'}</span>
+            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">${f.monthlySavingsUSD > 0 ? '+' + fmtUSD(f.monthlySavingsUSD) + '/mo' : (PILLAR_LABELS[f.pillar] || 'Guardrail')}</span>
           </div>
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">${f.description}</p>
           <div class="pt-1 flex items-center justify-between">
@@ -857,15 +878,18 @@ resource "aws_instance" "batch_processor" {
       if (!window.currentPatches || !window.currentPatches[index]) return;
       const patch = window.currentPatches[index];
       const diffContainer = document.getElementById('diffContainer');
-      const diffCode = document.getElementById('diffCode');
-      diffCode.innerText = patch.diff;
+      renderDiff(patch.diff || '# No safe automatic fix for this finding. Flagged for manual review.');
       diffContainer.classList.remove('hidden');
       diffContainer.scrollIntoView({ behavior: 'smooth' });
     };
 
     document.getElementById('btnCopyDiff').onclick = () => {
-      navigator.clipboard.writeText(document.getElementById('diffCode').innerText);
-      alert('Unified patch copied to clipboard!');
+      const btn = document.getElementById('btnCopyDiff');
+      navigator.clipboard.writeText(document.getElementById('diffCode').textContent).then(() => {
+        const prev = btn.innerHTML;
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.innerHTML = prev; }, 1500);
+      }).catch(() => {});
     };
 
     document.getElementById('btnRunAudit').click();

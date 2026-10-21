@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Fixed (2026-10-22)
+- **Invalid RDS encryption patch:** the synthesizer inserted `storage_encrypted = true` without removing
+  the existing `storage_encrypted = false`, which produced duplicate attributes. Fixes now edit attributes in place,
+  scoped to the offending resource block.
+- **Diff output:** replaced the line-index diff with an LCS-based unified diff (proper hunks, `-` before `+`,
+  `\ No newline at end of file`). Patches now apply with `git apply`.
+- **Combined patch:** "fix all" now emits ONE applicable diff instead of one diff per finding against the same file.
+- Added remediations for `REL_NO_MULTI_AZ_DB` and `SEC_UNENCRYPTED_EBS`. Rules with no safe auto-fix return no diff.
+- Spoken replies: currency formatting and singular/plural; no raw model IDs in speech.
+- UI: color-coded diffs, pillar labels (Reliability no longer shown as "Security Guardrail"), no blocking `alert()`
+  on copy, header status pill no longer overlaps the logo on narrow screens.
+- Deploy configs now default to `amazon.nova-pro-v1:0` (they still named Claude 3.5 Sonnet).
+
+### Added (2026-10-22)
+- `LICENSE` (MIT), required for the Open Source mini-challenge and for public repos.
+- `test/remediation.test.ts` (7 assertions): in-place edits, single combined diff, zero findings after re-audit.
+- README "What's Real vs. Simulated" table. Bee and Fire TV are presented as simulated concept extensions.
+
+### Changed (2026-10-22)
+- Replaced the unverified "~343ms" latency claim with the measured ~6–9 s end-to-end live audit time.
+- Moved the outdated Devpost draft and pitch deck to `docs/archive/`.
+
 ### Migrated to TypeScript (2026-09-18)
 - Ported IaC parser, Well-Architected engine, remediation synthesizer, Bedrock
   Converse agent, and server from JavaScript to **TypeScript** (strict) with typed

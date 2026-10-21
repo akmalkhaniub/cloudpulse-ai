@@ -177,7 +177,7 @@ export class BedrockConverseAgent {
       };
     }
     if (toolName === 'synthesize_remediation_diff') {
-      return RemediationSynthesizer.generatePatch({ ruleId: toolInput.ruleId, targetProp: 'cidr_blocks' }, toolInput.hclContent);
+      return RemediationSynthesizer.generatePatch({ ruleId: toolInput.ruleId, resourceId: toolInput.resourceId }, toolInput.hclContent);
     }
     if (toolName === 'estimate_finops_savings') {
       const totalSavings = (toolInput.violations || []).reduce((acc: number, v: any) => acc + (v.monthlySavingsUSD || 0), 0);

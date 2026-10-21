@@ -1,10 +1,10 @@
 # 🛠️ Shape: Structured Developer Feedback for Amazon Engineering Teams
 
 > **Hackathon:** Build, Ship, Shape: Amazon Developer Hackathon (Deadline: October 23, 2026)  
-> **Project:** CloudPulse AI — Unified Amazon Ecosystem Agent (Alexa+ MCP + Amazon Bee Wearable + Fire TV + AWS Bedrock)  
-> **Tracks Targeted:** Primary: **Alexa+ Track (Self-Hosted MCP Server & Agent Skill)** | Ecosystem: **Amazon Bee Wearable & Fire TV** | Mini-Challenge: **AWS Builder (`amazon.nova-pro-v1:0`)**
+> **Project:** CloudPulse AI — Voice-First DevSecOps & FinOps Agent for Alexa+ (MCP server + Amazon Bedrock)  
+> **Tracks Targeted:** Primary: **Alexa+ (self-hosted MCP server + simulated Alexa+ web experience)** | Mini-Challenges: **AWS Builder (`amazon.nova-pro-v1:0`)**, **Open Source** | Concept extensions (simulated, feature requests only): **Bee**, **Fire TV**
 
-This document fulfills the **"Shape"** pillar of the Amazon Developer Hackathon by providing concrete, engineering-level product feedback, friction points, and architectural recommendations discovered while building **CloudPulse AI** across all four Amazon developer surfaces.
+This document fulfills the **"Shape"** pillar of the Amazon Developer Hackathon by providing concrete, engineering-level product feedback, friction points, and architectural recommendations discovered while building **CloudPulse AI** with Alexa+ MCP and Amazon Bedrock, plus feature requests from two simulated concept extensions (Bee and Fire TV). We did not use the Bee or Fire TV SDKs or devices, so sections 3–4 are feature requests, not product feedback.
 
 ---
 
@@ -17,7 +17,7 @@ We implemented a JSON-RPC 2.0 Model Context Protocol server (`src/alexa_mcp_serv
 1. **Schema Translation Between MCP and Bedrock Converse:**
    - MCP tools define `inputSchema` directly as a JSON Schema object (`{ type: "object", properties: ... }`), whereas `@aws-sdk/client-bedrock-runtime` `ConverseCommand` wraps the schema inside `toolSpec.inputSchema.json`. Developers building an Alexa+ MCP server backed by Amazon Bedrock must maintain dual tool descriptors or write custom adapter code.
 2. **Voice Latency vs. Multi-Step Agent Execution:**
-   - When an Alexa+ utterance triggers a deep multi-turn tool loop (e.g., parsing HCL + calling Bedrock Converse + generating a unified diff), total execution can take 800ms–1,500ms. Standard voice skill timeouts and lack of progressive streaming SSML responses can make conversational agent turns feel abrupt if not buffered.
+   - When an Alexa+ utterance triggers a deep multi-turn tool loop (e.g., parsing HCL + calling Bedrock Converse + generating a unified diff), a full live audit took ~6–9 s end to end in our tests (us-east-1, called from Pakistan). Standard voice skill timeouts and lack of progressive streaming SSML responses can make conversational agent turns feel abrupt if not buffered.
 3. **Testing Gated Alexa+ Agent Skills Locally:**
    - Because the Alexa+ Developer Console simulator is currently gated to preview partners, independent builders have no official CLI tool to validate how Alexa+ ranks and selects among multiple MCP tools based on natural-language utterances.
 
@@ -31,7 +31,7 @@ We implemented a JSON-RPC 2.0 Model Context Protocol server (`src/alexa_mcp_serv
 ## 2. AWS Builder Track: Amazon Bedrock Converse API (`@aws-sdk/client-bedrock-runtime`)
 
 ### 🔍 What We Built
-We integrated `@aws-sdk/client-bedrock-runtime` (`ConverseCommand`) with `amazon.nova-pro-v1:0` (achieving ~343ms baseline turn latency in `us-east-1`) alongside a multi-turn `tool_use` / `toolResult` loop (`src/bedrock_converse_agent.ts`).
+We integrated `@aws-sdk/client-bedrock-runtime` (`ConverseCommand`) with `amazon.nova-pro-v1:0` alongside a multi-turn `tool_use` / `toolResult` loop (`src/bedrock_converse_agent.ts`).
 
 ### ⚠️ Developer Friction Encountered
 1. **Cross-Region Inference Profile ID vs. Direct Model ID Confusion:**
@@ -45,10 +45,10 @@ We integrated `@aws-sdk/client-bedrock-runtime` (`ConverseCommand`) with `amazon
 
 ---
 
-## 3. Amazon Bee Wearable Track: Ambient Meeting Ingestion & Webhook Context
+## 3. Concept Extension (Simulated): Bee-Style Standup Transcript Sync — Feature Request
 
 ### 🔍 What We Built
-We built `ingest_bee_meeting_transcript` (`POST /api/bee/ingest`), which ingests multi-speaker engineering standup transcripts captured by an Amazon Bee wearable, extracts spoken cloud security and FinOps action items, cross-verifies whether each spoken concern is actually present in the production Terraform AST, and stages unified remediation diffs.
+We built `ingest_bee_meeting_transcript` (`POST /api/bee/ingest`), which ingests a **sample** multi-speaker standup transcript (in the format we'd expect from a Bee wearable; no live Bee device or API was used), extracts spoken cloud security and FinOps action items, cross-verifies whether each spoken concern is actually present in the production Terraform AST, and stages unified remediation diffs.
 
 ### ⚠️ Developer Friction Encountered
 1. **Unstructured Utterance Boundaries in Developer Workflows:**
@@ -59,10 +59,10 @@ We built `ingest_bee_meeting_transcript` (`POST /api/bee/ingest`), which ingests
 
 ---
 
-## 4. Amazon Fire TV Track: 10-Foot NOC Wallboard & D-Pad Focus Management
+## 4. Concept Extension (Simulated): Fire TV-Style 10-Foot Wallboard — Feature Request
 
 ### 🔍 What We Built
-We built `get_firetv_wallboard_state` (`POST /api/firetv/wallboard`) and a 10-foot NOC Engineering War-Room Wallboard UI with hardware D-Pad spatial focus navigation (`ArrowLeft`, `ArrowRight`, `Enter`) so engineering teams can inspect violations and trigger Alexa+ remediation directly on an office Fire TV screen.
+We built `get_firetv_wallboard_state` (`POST /api/firetv/wallboard`) and a 10-foot NOC Engineering War-Room Wallboard UI with hardware D-Pad spatial focus navigation (`ArrowLeft`, `ArrowRight`, `Enter`) in the browser, as a prototype of what we'd build for an office Fire TV screen. It is not yet a Fire OS / Vega OS app.
 
 ### ⚠️ Developer Friction Encountered
 1. **Cross-Device Session Handoff Between Alexa+ Voice and Fire TV UI:**

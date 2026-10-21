@@ -1,20 +1,18 @@
-# ☁️ CloudPulse AI — Unified Amazon Ecosystem DevSecOps & FinOps Agent
+# ☁️ CloudPulse AI — Voice-First DevSecOps & FinOps Agent for Alexa+
 
 [![TypeScript: strict](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)](https://www.typescriptlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Alexa+: MCP Server](https://img.shields.io/badge/Alexa%2B-MCP%20Server%20%286%20Tools%29-00CAFF.svg)](./src/alexa_mcp_server.ts)
-[![Amazon Bee: Wearable Sync](https://img.shields.io/badge/Amazon%20Bee-Wearable%20Standup%20Sync-f59e0b.svg)](./src/alexa_mcp_server.ts)
-[![Amazon Fire TV: 10-Foot Wallboard](https://img.shields.io/badge/Fire%20TV-10--Foot%20NOC%20Wallboard-f97316.svg)](./src/public/index.html)
 [![AWS Bedrock: Converse API](https://img.shields.io/badge/Amazon%20Bedrock-Nova%20Pro%20Converse%20API-orange.svg)](https://aws.amazon.com/bedrock/)
 [![Detection F1: 1.000](https://img.shields.io/badge/Benchmark%20F1-1.000-emerald.svg)](./src/eval.ts)
 
-> **Built for the [Build, Ship, Shape: Amazon Developer Hackathon (Devpost)](https://amazon-developer.devpost.com/)**  
-> **Primary Track:** Alexa+ Track (Self-Hosted MCP Server & Conversational DevOps Skill)  
-> **Ecosystem Integrations:** Amazon Bee Wearable (Ambient Standup Ingestion) & Amazon Fire TV (10-Foot NOC War-Room Wallboard)  
-> **Mini-Challenge:** AWS Builder (Amazon Bedrock Converse API — `amazon.nova-pro-v1:0`)  
+> **Built for the [Build, Ship, Shape: Amazon Developer Hackathon (Devpost)](https://amazonappdev2026.devpost.com/)**  
+> **Primary Track:** Alexa+ (self-hosted MCP server + simulated Alexa+ voice experience in a web app)  
+> **Mini-Challenges:** AWS Builder (Amazon Bedrock Converse API — `amazon.nova-pro-v1:0`) • Open Source (MIT)  
+> **Concept extensions (simulated, not entered in those tracks):** Bee-style standup transcript sync • Fire TV-style 10-foot wallboard  
 > **Submission Deadline:** Friday, October 23, 2026 @ 12:00 PM PDT
 
-CloudPulse AI unites **Alexa+**, **Amazon Bee Wearable**, **Amazon Fire TV**, and **Amazon Bedrock Converse (`amazon.nova-pro-v1:0`)** into a single autonomous Senior Cloud Architect and FinOps Copilot. Through a self-hosted **Model Context Protocol (MCP) JSON-RPC 2.0 server** (`/api/mcp`) with **6 registered tools**, engineering teams can capture spoken infrastructure risks during morning standups on their **Amazon Bee** wearable, ask **Alexa+** via live microphone Speech-to-Text for their morning cloud briefing, inspect live posture on a **Fire TV 10-foot NOC War-Room Wallboard** with D-Pad navigation, and ship zero-downtime unified Git remediation Pull Requests by voice.
+CloudPulse AI turns **Alexa+** and **Amazon Bedrock Converse (`amazon.nova-pro-v1:0`)** into an autonomous Senior Cloud Architect and FinOps copilot. Through a self-hosted **Model Context Protocol (MCP) JSON-RPC 2.0 server** (`/api/mcp`) with **6 registered tools**, engineering teams can capture spoken infrastructure risks during morning standups on their **Amazon Bee** wearable, ask **Alexa+** via live microphone Speech-to-Text for their morning cloud briefing, inspect live posture on a **Fire TV 10-foot NOC War-Room Wallboard** with D-Pad navigation, and ship zero-downtime unified Git remediation Pull Requests by voice.
 
 ---
 
@@ -61,10 +59,24 @@ flowchart TD
    - **Tab 4 — MCP JSON-RPC 2.0 Inspector (`/api/mcp`):** Live protocol inspector for testing `initialize`, `tools/list`, and `tools/call` payloads.
    - **Tab 5 — "Shape" Developer Feedback:** Structured product feedback and SDK recommendations across Alexa+ MCP, Bedrock Converse, Bee Wearable, and Fire TV Vega OS.
 3. **Amazon Bedrock Converse API Integration (`src/bedrock_converse_agent.ts`):**
-   - Uses `@aws-sdk/client-bedrock-runtime` (`ConverseCommand`) with `amazon.nova-pro-v1:0` (measured ~343ms live response latency in `us-east-1`) and automatic offline simulator fallback so judges can run the entire stack without AWS credentials.
+   - Uses `@aws-sdk/client-bedrock-runtime` (`ConverseCommand`) with `amazon.nova-pro-v1:0` (a full live audit, a multi-turn tool loop, took ~6–9 s end to end in our tests against `us-east-1`) and automatic offline simulator fallback so judges can run the entire stack without AWS credentials.
 4. **Deterministic HCL Parser & Well-Architected Rule Engine (`F1 = 1.000`):**
    - Detects `SEC_OPEN_SSH_INGRESS`, `SEC_UNENCRYPTED_DB`, `SEC_UNENCRYPTED_EBS`, `REL_NO_MULTI_AZ_DB`, `COST_OVERPROVISIONED_EC2`, and `COST_ORPHANED_EBS_VOLUME`.
    - Validated against labeled, compliant, and adversarial ("tricky-clean") Terraform manifests with **1.000 Precision, 1.000 Recall, and 1.000 F1** (`npm run eval`).
+
+---
+
+## ✅ What's Real vs. Simulated
+
+| Component | Status |
+| :--- | :--- |
+| Alexa+ MCP server (`/api/mcp`, 6 tools, JSON-RPC 2.0) | **Real**, runs locally; tested by the integration suite |
+| Alexa+ voice front end (`/api/alexa`, browser STT/TTS) | **Simulated** Alexa+ experience in a web app (allowed by the Alexa+ track) |
+| Amazon Bedrock Converse (`amazon.nova-pro-v1:0`) | **Real** when AWS credentials are present; deterministic simulator otherwise |
+| Rule engine, remediation patches, F1 eval | **Real**: the combined patch applies with `git apply`, and re-auditing the patched sample leaves 0 findings |
+| GitHub PR | **Dry run** without `GITHUB_TOKEN`. Live mode opens a PR from an existing `cloudpulse/remediation` branch |
+| Bee standup sync | **Concept**: uses a sample diarized transcript, no live Bee device |
+| Fire TV wallboard | **Concept**: browser 10-foot UI with arrow-key navigation, not a Fire OS / Vega OS app |
 
 ---
 
@@ -87,7 +99,8 @@ amazon-developer-hackathon/
 │   ├── verify_cloudpulse.ts       # 8-step core unit & Bedrock Converse test suite
 │   ├── parser.test.ts             # HCL parser edge-case unit tests
 │   ├── eval.test.ts               # Benchmark F1 = 1.000 verification tests
-│   └── server_integration.ts      # 16-assertion HTTP + Alexa+ MCP + Bee + Fire TV integration suite
+│   └── server_integration.ts      # 18-assertion HTTP + Alexa+ MCP + Bee + Fire TV integration suite
+│   ├── remediation.test.ts        # Patch correctness: in-place edits, single combined diff, zero findings after fix
 ├── docs/
 │   ├── AMAZON_DEVELOPER_FEEDBACK.md # Mandatory "Shape" developer feedback across 4 Amazon tracks
 │   ├── SUBMISSION.md              # Devpost submission copy
@@ -104,7 +117,7 @@ amazon-developer-hackathon/
 # 1. Install dependencies
 npm install
 
-# 2. Run all 4 automated test suites (unit + parser + F1 eval + 16-assertion MCP/Bee/FireTV integration)
+# 2. Run all 5 automated test suites (43 assertions: unit + parser + F1 eval + remediation + MCP integration)
 npm test
 
 # 3. Start the interactive Unified Amazon Ecosystem web studio (Port 3002)

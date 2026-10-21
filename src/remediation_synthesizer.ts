@@ -1,5 +1,9 @@
 /**
  * RemediationSynthesizer - Generates unified Git patch diffs for detected violations.
+ *
+ * Patches are scoped to the offending resource block (by `type.name`), update an
+ * existing attribute in place instead of duplicating it, and are rendered with an
+ * LCS-based line diff so only the lines that actually change are marked.
  */
 import { RIGHTSIZE_TARGET } from './well_architected_engine.js';
 
@@ -13,59 +17,213 @@ export interface RemediationPatch {
   ruleId: string;
   resourceId?: string;
   description: string;
+  /** false when the rule has no safe automatic fix (e.g. deleting an orphaned volume). */
+  autoFixable: boolean;
   diff: string;
   patchedContent: string;
 }
 
+export interface CombinedRemediation {
+  patchCount: number;
+  ruleIds: string[];
+  diff: string;
+  patchedContent: string;
+}
+
+interface BlockSpan { start: number; end: number; bodyStart: number; }
+
+/** Locate `resource "<type>" "<name>" { ... }` and return its span (brace-matched). */
+function findResourceBlock(source: string, resourceId?: string, type?: string): BlockSpan | null {
+  let re: RegExp;
+  if (resourceId && resourceId.includes('.')) {
+    const [t, n] = resourceId.split('.');
+    re = new RegExp(`resource\\s+"${escapeRe(t)}"\\s+"${escapeRe(n)}"\\s*\\{`);
+  } else if (type) {
+    re = new RegExp(`resource\\s+"${escapeRe(type)}"\\s+"[^"]+"\\s*\\{`);
+  } else {
+    return null;
+  }
+  const m = re.exec(source);
+  if (!m) return null;
+  const bodyStart = m.index + m[0].length;
+  let depth = 1;
+  for (let i = bodyStart; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    else if (source[i] === '}') {
+      depth--;
+      if (depth === 0) return { start: m.index, end: i, bodyStart };
+    }
+  }
+  return null;
+}
+
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Set `attr = value` inside a resource block: replace if present, otherwise insert after the opening brace. */
+function setAttribute(source: string, block: BlockSpan, attr: string, value: string): string {
+  const body = source.slice(block.bodyStart, block.end);
+  const attrRe = new RegExp(`^(\\s*)${escapeRe(attr)}(\\s*)=\\s*[^\\n#]*`, 'm');
+  let newBody: string;
+  if (attrRe.test(body)) {
+    newBody = body.replace(attrRe, (_m, indent: string, pad: string) => `${indent}${attr}${pad}= ${value}`);
+  } else {
+    const indent = (/\n([ \t]+)\S/.exec(body)?.[1]) ?? '  ';
+    // Align '=' with the block's existing top-level attributes (terraform fmt style).
+    const keyWidths = [...body.matchAll(new RegExp(`^${indent}([A-Za-z_][A-Za-z0-9_]*)(\\s*)=`, 'gm'))]
+      .map((mm) => mm[1].length + mm[2].length);
+    const width = Math.max(attr.length + 1, ...keyWidths);
+    const line = `${indent}${attr.padEnd(width)}= ${value}\n`;
+    newBody = body.endsWith('\n') ? body + line : `${body}\n${line}`;
+  }
+  return source.slice(0, block.bodyStart) + newBody + source.slice(block.end);
+}
+
+function withBlock(source: string, finding: FindingLike, type: string, fn: (block: BlockSpan) => string): string {
+  const block = findResourceBlock(source, finding.resourceId, type);
+  return block ? fn(block) : source;
+}
+
 export class RemediationSynthesizer {
+  /** Apply one finding's fix to the source and return the patched source (unchanged if no safe auto-fix). */
+  static applyFix(finding: FindingLike, source: string): { patched: string; description: string; autoFixable: boolean } {
+    switch (finding.ruleId) {
+      case 'SEC_OPEN_SSH_INGRESS': {
+        const patched = withBlock(source, finding, 'aws_security_group', (b) => {
+          const body = source.slice(b.bodyStart, b.end).replace(
+            /cidr_blocks(\s*)=\s*\["0\.0\.0\.0\/0"\]/g,
+            'cidr_blocks$1= ["10.0.0.0/16"] # Restricted to corporate VPC CIDR'
+          );
+          return source.slice(0, b.bodyStart) + body + source.slice(b.end);
+        });
+        return { patched, autoFixable: true, description: 'Restricted administrative SSH/RDP ingress from 0.0.0.0/0 to the internal VPC CIDR.' };
+      }
+      case 'SEC_UNENCRYPTED_DB': {
+        let patched = withBlock(source, finding, 'aws_db_instance', (b) => setAttribute(source, b, 'storage_encrypted', 'true'));
+        if (!/kms_key_id\s*=/.test(findBody(patched, finding, 'aws_db_instance'))) {
+          patched = withBlock(patched, finding, 'aws_db_instance', (b) => setAttribute(patched, b, 'kms_key_id', '"alias/aws/rds"'));
+        }
+        return { patched, autoFixable: true, description: 'Enabled KMS at-rest storage encryption on the RDS instance (requires snapshot-restore for existing instances).' };
+      }
+      case 'REL_NO_MULTI_AZ_DB': {
+        const patched = withBlock(source, finding, 'aws_db_instance', (b) => setAttribute(source, b, 'multi_az', 'true'));
+        return { patched, autoFixable: true, description: 'Enabled a Multi-AZ standby for the RDS instance.' };
+      }
+      case 'SEC_UNENCRYPTED_EBS': {
+        const patched = withBlock(source, finding, 'aws_ebs_volume', (b) => setAttribute(source, b, 'encrypted', 'true'));
+        return { patched, autoFixable: true, description: 'Enabled at-rest encryption on the EBS volume.' };
+      }
+      case 'COST_OVERPROVISIONED_EC2': {
+        const patched = withBlock(source, finding, 'aws_instance', (b) => {
+          const body = source.slice(b.bodyStart, b.end).replace(
+            /instance_type(\s*)=\s*"[a-z0-9]+\.(?:4|8)xlarge"/,
+            `instance_type$1= "${RIGHTSIZE_TARGET}" # Rightsized using the local us-east-1 price table`
+          );
+          return source.slice(0, b.bodyStart) + body + source.slice(b.end);
+        });
+        return { patched, autoFixable: true, description: `Rightsized the over-provisioned instance to ${RIGHTSIZE_TARGET}.` };
+      }
+      default:
+        return { patched: source, autoFixable: false, description: 'No safe automatic fix; flagged for manual review.' };
+    }
+  }
+
   /** Synthesize a precise code patch diff for a given violation. */
   static generatePatch(finding: FindingLike, originalSource: string): RemediationPatch {
-    let patchedSource = originalSource;
-    let patchDescription = '';
-
-    if (finding.ruleId === 'SEC_OPEN_SSH_INGRESS') {
-      patchedSource = originalSource.replace(
-        /cidr_blocks\s*=\s*\["0\.0\.0\.0\/0"\]/g,
-        'cidr_blocks = ["10.0.0.0/16"] # Restricted to corporate VPC CIDR'
-      );
-      patchDescription = 'Restricted administrative SSH/RDP ingress from universal 0.0.0.0/0 to internal VPC CIDR boundary.';
-    } else if (finding.ruleId === 'SEC_UNENCRYPTED_DB') {
-      patchedSource = originalSource.replace(
-        /(resource\s+"aws_db_instance"\s+"[^"]+"\s*\{)/g,
-        '$1\n  storage_encrypted = true\n  kms_key_id        = "alias/aws/rds"'
-      );
-      patchDescription = 'Enforced at-rest KMS storage encryption on AWS RDS instance.';
-    } else if (finding.ruleId === 'COST_OVERPROVISIONED_EC2') {
-      patchedSource = originalSource.replace(
-        /instance_type\s*=\s*"[cm]5\.4xlarge"/g,
-        `instance_type = "${RIGHTSIZE_TARGET}" # Rightsized using the local us-east-1 price table`
-      );
-      patchDescription = 'Rightsized over-provisioned instance to AWS Graviton t4g.xlarge, preserving throughput while reducing cloud expenditure.';
-    }
-
+    const { patched, description, autoFixable } = this.applyFix(finding, originalSource);
+    const changed = patched !== originalSource;
     return {
       ruleId: finding.ruleId,
       resourceId: finding.resourceId,
-      description: patchDescription,
-      diff: this.createUnifiedDiff(originalSource, patchedSource),
-      patchedContent: patchedSource
+      description,
+      autoFixable: autoFixable && changed,
+      diff: changed ? this.createUnifiedDiff(originalSource, patched) : '',
+      patchedContent: patched
     };
   }
 
-  static createUnifiedDiff(original: string, modified: string): string {
-    const origLines = original.split('\n');
-    const modLines = modified.split('\n');
-    let diff = `--- a/main.tf\n+++ b/main.tf\n@@ -1,${origLines.length} +1,${modLines.length} @@\n`;
-    for (let i = 0; i < Math.max(origLines.length, modLines.length); i++) {
-      const o = origLines[i];
-      const m = modLines[i];
-      if (o === m) {
-        if (o !== undefined) diff += ` ${o}\n`;
-      } else {
-        if (o !== undefined) diff += `-${o}\n`;
-        if (m !== undefined) diff += `+${m}\n`;
+  /** Apply every auto-fixable finding in sequence and return ONE applicable unified diff. */
+  static generateCombinedPatch(findings: FindingLike[], originalSource: string): CombinedRemediation {
+    let current = originalSource;
+    const ruleIds: string[] = [];
+    for (const f of findings) {
+      const { patched } = this.applyFix(f, current);
+      if (patched !== current) {
+        ruleIds.push(f.ruleId);
+        current = patched;
       }
     }
-    return diff;
+    return {
+      patchCount: ruleIds.length,
+      ruleIds,
+      diff: ruleIds.length ? this.createUnifiedDiff(originalSource, current) : '',
+      patchedContent: current
+    };
   }
+
+  /** LCS-based unified diff with 3 lines of context and proper hunk headers. */
+  static createUnifiedDiff(original: string, modified: string, fileName = 'main.tf', context = 3): string {
+    // A last line without a trailing newline gets a sentinel so it never matches a newline-terminated line.
+    const NO_EOL = '\u0000';
+    const toLines = (t: string) => {
+      const l = t.split('\n');
+      if (l[l.length - 1] === '') l.pop();
+      else if (l.length) l[l.length - 1] += NO_EOL;
+      return l;
+    };
+    const a = toLines(original);
+    const b = toLines(modified);
+    const n = a.length;
+    const m = b.length;
+    const lcs: number[][] = Array.from({ length: n + 1 }, () => new Array<number>(m + 1).fill(0));
+    for (let i = n - 1; i >= 0; i--) {
+      for (let j = m - 1; j >= 0; j--) {
+        lcs[i][j] = a[i] === b[j] ? lcs[i + 1][j + 1] + 1 : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
+      }
+    }
+    type Op = { t: ' ' | '-' | '+'; line: string; ai: number; bi: number };
+    const ops: Op[] = [];
+    let i = 0;
+    let j = 0;
+    while (i < n || j < m) {
+      if (i < n && j < m && a[i] === b[j]) { ops.push({ t: ' ', line: a[i], ai: i, bi: j }); i++; j++; }
+      else if (i < n && (j >= m || lcs[i + 1][j] >= lcs[i][j + 1])) { ops.push({ t: '-', line: a[i], ai: i, bi: j }); i++; }
+      else { ops.push({ t: '+', line: b[j], ai: i, bi: j }); j++; }
+    }
+
+    const changeIdx = ops.map((o, k) => (o.t === ' ' ? -1 : k)).filter((k) => k >= 0);
+    if (changeIdx.length === 0) return '';
+
+    // Group changes into hunks separated by more than 2*context unchanged lines.
+    const hunks: Array<[number, number]> = [];
+    let hs = Math.max(0, changeIdx[0] - context);
+    let he = Math.min(ops.length - 1, changeIdx[0] + context);
+    for (const k of changeIdx.slice(1)) {
+      if (k - context <= he + 1) he = Math.min(ops.length - 1, k + context);
+      else { hunks.push([hs, he]); hs = Math.max(0, k - context); he = Math.min(ops.length - 1, k + context); }
+    }
+    hunks.push([hs, he]);
+
+    let out = `--- a/${fileName}\n+++ b/${fileName}\n`;
+    for (const [s, e] of hunks) {
+      const slice = ops.slice(s, e + 1);
+      const aCount = slice.filter((o) => o.t !== '+').length;
+      const bCount = slice.filter((o) => o.t !== '-').length;
+      const aStart = aCount ? slice[0].ai + 1 : slice[0].ai;
+      const bStart = bCount ? slice[0].bi + 1 : slice[0].bi;
+      out += `@@ -${aStart},${aCount} +${bStart},${bCount} @@\n`;
+      for (const o of slice) {
+        out += o.line.endsWith(NO_EOL)
+          ? `${o.t}${o.line.slice(0, -1)}\n\\ No newline at end of file\n`
+          : `${o.t}${o.line}\n`;
+      }
+    }
+    return out;
+  }
+}
+
+function findBody(source: string, finding: FindingLike, type: string): string {
+  const b = findResourceBlock(source, finding.resourceId, type);
+  return b ? source.slice(b.bodyStart, b.end) : '';
 }

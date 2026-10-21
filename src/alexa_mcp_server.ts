@@ -64,6 +64,25 @@ export const SAMPLE_BEE_TRANSCRIPT = `[09:14:02] Sarah (SRE Lead): Morning team.
 
 export const SUPPORTED_MCP_VERSIONS = ['2026-07-28', '2025-11-25', '2025-06-18', '2025-03-26'] as const;
 
+const usd = (n: number): string =>
+  '$' + (Number.isFinite(n) ? n : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
+
+const FIX_PHRASES: Record<string, string> = {
+  SEC_OPEN_SSH_INGRESS: 'closing public SSH/RDP ingress',
+  SEC_UNENCRYPTED_DB: 'enabling KMS encryption on RDS',
+  REL_NO_MULTI_AZ_DB: 'enabling RDS Multi-AZ',
+  SEC_UNENCRYPTED_EBS: 'encrypting EBS volumes',
+  COST_OVERPROVISIONED_EC2: 'rightsizing oversized EC2'
+};
+
+function describeFixes(ruleIds: string[]): string {
+  const phrases = [...new Set(ruleIds)].map((r) => FIX_PHRASES[r]).filter(Boolean);
+  if (phrases.length <= 1) return phrases.join('');
+  return phrases.slice(0, -1).join(', ') + ', and ' + phrases[phrases.length - 1];
+}
+
 export class AlexaMcpServer {
   readonly serverInfo = {
     name: 'cloudpulse-alexa-plus-mcp',
@@ -420,6 +439,7 @@ export class AlexaMcpServer {
     const resources = IaCParser.parse(hclContent);
     const audit = WellArchitectedEngine.audit(resources);
     const patches = audit.findings.map((f) => RemediationSynthesizer.generatePatch(f, hclContent));
+    const combined = RemediationSynthesizer.generateCombinedPatch(audit.findings, hclContent);
     const annualSavings = Math.round(audit.totalMonthlySavingsUSD * 12 * 100) / 100;
 
     if (name === 'get_morning_cloud_briefing') {
@@ -427,7 +447,7 @@ export class AlexaMcpServer {
       const criticals = audit.findings.filter((f) => f.severity === 'CRITICAL');
       const highCount = audit.findings.filter((f) => f.severity === 'HIGH').length;
       const speech = criticals.length > 0
-        ? `Good morning ${engineer}. I scanned ${resources.length} Terraform resources in your production stack. Alert: you have ${criticals.length} critical security vulnerability—${criticals[0].title}—plus ${highCount} high-severity findings. On the FinOps side, rightsizing oversized compute will save $${audit.totalMonthlySavingsUSD} per month, or $${annualSavings} per year. Say "Alexa, ship the remediation patch" whenever you're ready.`
+        ? `Good morning ${engineer}. I scanned ${resources.length} Terraform resources in your production stack. Alert: you have ${plural(criticals.length, 'critical security vulnerability', 'critical security vulnerabilities')}—${criticals[0].title}—plus ${plural(highCount, 'high-severity finding', 'high-severity findings')}. On the FinOps side, rightsizing oversized compute will save ${usd(audit.totalMonthlySavingsUSD)} per month, or ${usd(annualSavings)} per year. Say "Alexa, ship the remediation patch" whenever you're ready.`
         : `Good morning ${engineer}. All ${resources.length} Terraform resources passed critical security checks with zero high-risk exposures.`;
 
       return {
@@ -463,23 +483,26 @@ export class AlexaMcpServer {
       const selectedPatches = targetRule
         ? patches.filter((p) => p.ruleId === targetRule)
         : patches;
-      const combinedDiff = selectedPatches.map((p) => p.diff).join('\n\n');
+      const combinedDiff = targetRule
+        ? selectedPatches.map((p) => p.diff).filter(Boolean).join('\n')
+        : combined.diff;
       return {
-        patchCount: selectedPatches.length,
+        patchCount: targetRule ? selectedPatches.filter((p) => p.autoFixable).length : combined.patchCount,
         combinedDiff,
         patches: selectedPatches
       };
     }
 
     if (name === 'ship_github_remediation_pr') {
-      const combinedDiff = patches.map((p) => p.diff).join('\n\n');
+      const combinedDiff = combined.diff;
       const prResult = await openRemediationPr(combinedDiff);
       return {
         prMode: prResult.mode,
         prUrl: prResult.url,
         branch: args.branchName || prResult.draft.head,
         title: prResult.draft.title,
-        patchesIncluded: patches.length,
+        patchesIncluded: combined.patchCount,
+        rulesRemediated: combined.ruleIds,
         monthlySavingsUnlockedUSD: audit.totalMonthlySavingsUSD,
         annualSavingsUnlockedUSD: annualSavings,
         combinedDiff
@@ -491,10 +514,10 @@ export class AlexaMcpServer {
       const foundRuleIds = new Set(audit.findings.map((f) => f.ruleId));
       const actionItems = this.extractBeeActionItems(transcript, foundRuleIds);
       const verifiedCount = actionItems.filter((a) => a.matchedInTerraform).length;
-      const combinedDiff = patches.map((p) => p.diff).join('\n\n');
+      const combinedDiff = combined.diff;
 
       return {
-        device: 'Amazon Bee AI Wearable',
+        device: 'Bee-style wearable transcript (concept: sample data, no live device)',
         transcriptLines: transcript.split(/\r?\n/).filter(Boolean).length,
         extractedActionItems: actionItems,
         verifiedInTerraformCount: verifiedCount,
@@ -507,7 +530,7 @@ export class AlexaMcpServer {
 
     if (name === 'get_firetv_wallboard_state') {
       return {
-        device: 'Amazon Fire TV (Vega OS / Fire OS 10-Foot NOC Wallboard)',
+        device: 'Fire TV-style 10-foot wallboard (concept: browser prototype)',
         dpadNavigationSupported: true,
         remoteKeys: ['ArrowLeft', 'ArrowRight', 'Enter', 'Escape'],
         kpis: {
@@ -545,7 +568,7 @@ export class AlexaMcpServer {
         transcript: extra.transcript || SAMPLE_BEE_TRANSCRIPT
       });
       const items = (data.extractedActionItems as BeeActionItem[]) || [];
-      const speech = `I synced your Amazon Bee wearable recording from this morning's standup. I extracted ${items.length} spoken cloud action items and verified ${data.verifiedInTerraformCount} of them directly in your Terraform AST—including open SSH port 22, unencrypted Postgres RDS, and the oversized m5.4xlarge instance costing $${data.monthlySavingsUSD} per month. All patches are staged and ready.`;
+      const speech = `I synced your Amazon Bee wearable recording from this morning's standup. I extracted ${items.length} spoken cloud action items and verified ${data.verifiedInTerraformCount} of them directly in your Terraform AST—with ${usd(Number(data.monthlySavingsUSD))} per month in potential savings. The combined patch is staged and ready for review.`;
       return {
         utterance,
         matchedIntent: 'BeeWearableMeetingSync',
@@ -560,7 +583,7 @@ export class AlexaMcpServer {
     if (lower.includes('fire tv') || lower.includes('firetv') || lower.includes('wallboard') || lower.includes('war room') || lower.includes('tv')) {
       const data = await this.callTool('get_firetv_wallboard_state', { hclContent });
       const kpis = data.kpis as Record<string, unknown>;
-      const speech = `Launching Fire TV 10-foot Engineering War-Room mode. Displaying ${kpis.activeViolations} active Well-Architected findings and $${kpis.annualSavingsUSD} in annual FinOps savings. Use your Fire TV remote left and right directional buttons to inspect each tile and press Select to view the patch.`;
+      const speech = `Launching Fire TV 10-foot Engineering War-Room mode. Displaying ${plural(Number(kpis.activeViolations), 'active Well-Architected finding', 'active Well-Architected findings')} and ${usd(Number(kpis.annualSavingsUSD))} in annual FinOps savings. Use your Fire TV remote left and right directional buttons to inspect each tile and press Select to view the patch.`;
       return {
         utterance,
         matchedIntent: 'FireTvWallboardLaunch',
@@ -574,7 +597,11 @@ export class AlexaMcpServer {
 
     if (lower.includes('ship') || lower.includes('pull request') || lower.includes('open a pr') || lower.includes('patch') || lower.includes('fix')) {
       const data = await this.callTool('ship_github_remediation_pr', { hclContent });
-      const speech = `Done! I synthesized ${data.patchesIncluded} zero-downtime Terraform patches—closing open SSH port 22, enabling KMS storage encryption on RDS, and rightsizing your EC2 instance to save $${data.annualSavingsUnlockedUSD} per year. Your GitHub Pull Request is staged on branch ${data.branch}.`;
+      const fixed = describeFixes((data.rulesRemediated as string[]) || []);
+      const prPhrase = data.prMode === 'live' && data.prUrl
+        ? `I opened the GitHub pull request at ${data.prUrl}.`
+        : `The pull request is staged as a dry run on branch ${data.branch}.`;
+      const speech = `Done! I combined ${plural(Number(data.patchesIncluded), 'Terraform fix', 'Terraform fixes')} into one patch${fixed ? `—${fixed}` : ''}${Number(data.annualSavingsUnlockedUSD) > 0 ? `, unlocking ${usd(Number(data.annualSavingsUnlockedUSD))} per year in savings` : ''}. ${prPhrase}`;
       return {
         utterance,
         matchedIntent: 'SynthesizeAndShipPR',
@@ -590,14 +617,14 @@ export class AlexaMcpServer {
       const data = await this.callTool('audit_iac_manifest', { hclContent });
       const audit = data.audit as any;
       const annual = Math.round((audit?.totalMonthlySavingsUSD || 0) * 12 * 100) / 100;
-      const speech = `Amazon Bedrock (${data.modelId}) completed the Well-Architected scan via MCP. I found ${audit.violationsCount} issues across Security, Reliability, and FinOps, with $${audit.totalMonthlySavingsUSD} per month ($${annual} per year) in immediate EC2 and EBS cost reductions.`;
+      const speech = `Amazon Bedrock completed the Well-Architected scan via MCP. I found ${plural(audit.violationsCount, 'issue', 'issues')} across Security, Reliability, and Cost Optimization, with ${usd(audit.totalMonthlySavingsUSD)} per month (${usd(annual)} per year) in cost reductions.`;
       return {
         utterance,
         matchedIntent: 'DeepWellArchitectedAudit',
         mcpMethodCalled: 'tools/call',
         mcpToolName: 'audit_iac_manifest',
         spokenSpeech: speech,
-        cardTitle: `Alexa+ MCP Tool Call: audit_iac_manifest (${data.modelId})`,
+        cardTitle: 'Alexa+ MCP Tool Call: audit_iac_manifest',
         data
       };
     }
