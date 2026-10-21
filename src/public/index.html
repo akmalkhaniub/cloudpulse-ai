@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CloudPulse — Cloud Security & FinOps Copilot</title>
+  <title>CloudPulse — Autonomous Cloud Security & FinOps Copilot</title>
   
   <!-- Typography: Inter for UI & JetBrains Mono for Code -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -61,7 +61,7 @@
       background: #334155;
     }
 
-    /* Markdown Styling in Summary */
+    /* Markdown Styling */
     .prose-custom h1, .prose-custom h2, .prose-custom h3, .prose-custom h4 {
       font-weight: 600;
       color: inherit;
@@ -114,9 +114,9 @@
 
   <!-- Top App Navigation Bar -->
   <header class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       
-      <!-- Left: Logo & Segmented Navigation -->
+      <!-- Left: Brand & Navigation -->
       <div class="flex items-center space-x-6">
         <div class="flex items-center space-x-2.5">
           <div class="w-8 h-8 rounded-lg bg-slate-900 dark:bg-sky-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">
@@ -125,7 +125,6 @@
           <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white">CloudPulse</span>
         </div>
 
-        <!-- Segmented Navigation Links -->
         <nav class="hidden md:flex items-center space-x-1 p-1 bg-slate-100 dark:bg-slate-800/60 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
           <button id="tabMainBtn" onclick="switchTab('main')" class="px-3 py-1.5 rounded-md font-semibold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition">
             Infrastructure Copilot
@@ -145,7 +144,7 @@
         </nav>
       </div>
 
-      <!-- Right: System Status & Theme Controls -->
+      <!-- Right: Operational Status & Theme -->
       <div class="flex items-center space-x-3">
         <div class="flex items-center space-x-2 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -159,8 +158,8 @@
     </div>
   </header>
 
-  <!-- Mobile Segmented Navigation -->
-  <div class="md:hidden max-w-7xl mx-auto px-4 pt-3">
+  <!-- Mobile Navigation -->
+  <div class="md:hidden max-w-6xl mx-auto px-4 pt-3">
     <div class="flex overflow-x-auto py-1 gap-1 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
       <button onclick="switchTab('main')" class="px-3 py-1.5 whitespace-nowrap rounded-md bg-slate-200 dark:bg-slate-800">Copilot</button>
       <button onclick="switchTab('bee')" class="px-3 py-1.5 whitespace-nowrap rounded-md text-slate-600 dark:text-slate-400">Standup Sync</button>
@@ -170,15 +169,15 @@
     </div>
   </div>
 
-  <!-- TAB 1: Main Infrastructure Copilot -->
-  <main id="tabMain" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+  <!-- TAB 1: Main Infrastructure Copilot (Streamlined Decision Workspace) -->
+  <main id="tabMain" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- Unified Voice & Dispatch Prompt Bar -->
+    <!-- Hero Voice & Agent Dispatch -->
     <section class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Voice & Agent Dispatch</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Speak or query CloudPulse via Alexa+ protocol or typed instructions.</p>
+          <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Autonomous Cloud Architect</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Speak or query your infrastructure via Alexa+ protocol or typed instructions.</p>
         </div>
 
         <div class="flex items-center space-x-3 text-xs text-slate-600 dark:text-slate-400">
@@ -189,13 +188,13 @@
         </div>
       </div>
 
-      <!-- Input Bar with Inline Microphone -->
+      <!-- Prompt Bar with Microphone -->
       <div class="flex items-center bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-1.5 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500 transition">
         <button id="btnMicInput" onclick="startLiveMicInput()" class="w-8 h-8 rounded-md bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 flex items-center justify-center transition shadow-sm border border-slate-200 dark:border-slate-700 shrink-0" title="Click to speak">
           <i class="fa-solid fa-microphone text-xs"></i>
         </button>
 
-        <input id="alexaInput" type="text" placeholder="Ask a question about your infrastructure, or try a quick action below..." class="flex-1 bg-transparent px-3 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none">
+        <input id="alexaInput" type="text" placeholder="Ask Alexa+ (e.g. 'What is our morning cloud briefing?' or 'Fix all violations and ship a PR')..." class="flex-1 bg-transparent px-3 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none">
 
         <button onclick="sendAlexaUtterance(document.getElementById('alexaInput').value)" class="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 dark:bg-sky-600 dark:hover:bg-sky-500 text-white font-medium text-xs transition shrink-0">
           Send
@@ -209,10 +208,7 @@
           ☀️ Morning Briefing
         </button>
         <button onclick="sendAlexaUtterance('Alexa, sync my Amazon Bee wearable standup recording and verify in Terraform')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
-          🐝 Sync Standup Notes
-        </button>
-        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to audit my Terraform with Amazon Bedrock')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
-          🛡️ Run Well-Architected Audit
+          🐝 Sync Standup Audio
         </button>
         <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to fix all violations and ship a GitHub Pull Request')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
           🚀 Synthesize & Create PR
@@ -235,78 +231,88 @@
       </div>
     </section>
 
-    <!-- Workspace Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      
-      <!-- Left: Terraform Code Editor (5 cols) -->
-      <div class="lg:col-span-5 space-y-3">
-        <div class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
-            <div class="flex items-center space-x-2">
-              <i class="fa-regular fa-file-code text-slate-400"></i>
-              <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">main.tf</span>
-              <span class="text-[11px] text-slate-400 font-normal">Terraform Manifest</span>
-            </div>
-            <button id="btnLoadSample" class="text-xs font-medium text-sky-600 dark:text-sky-400 hover:underline">Reset</button>
-          </div>
-          
-          <div class="p-3">
-            <textarea id="hclInput" rows="20" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-3 font-mono text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 transition resize-none"></textarea>
-          </div>
+    <!-- Priority Action Items (The Core Value: Findings & Remediation) -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-2">
+          <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+          <span>Action Items & Staged Remediations</span>
+        </h3>
+        <span class="text-xs text-slate-400 font-normal">Click any item to inspect its unified patch</span>
+      </div>
 
-          <div class="p-3 pt-0">
-            <button id="btnRunAudit" class="w-full py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition flex items-center justify-center space-x-2 shadow-sm">
+      <!-- Findings List (Full Width, Clear & Legible) -->
+      <div id="findingsContainer" class="space-y-3"></div>
+    </section>
+
+    <!-- Unified Diff Patch Box (Appears on click) -->
+    <section id="diffContainer" class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hidden space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center space-x-1.5">
+          <i class="fa-solid fa-code-compare text-xs"></i>
+          <span>Synthesized Zero-Downtime Unified Patch</span>
+        </span>
+        <button id="btnCopyDiff" class="text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-2.5 py-1 rounded border border-slate-200 dark:border-slate-700">Copy Patch</button>
+      </div>
+      <pre id="diffCode" class="p-4 rounded-lg bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto shadow-inner"></pre>
+    </section>
+
+    <!-- Collapsible Secondary Sections (Tucked cleanly for on-demand inspection) -->
+    <div class="space-y-3 pt-2">
+      
+      <!-- Collapsible Section 1: Edit / Inspect Source Terraform Manifest -->
+      <details class="group rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+        <summary class="flex items-center justify-between px-4 py-3 cursor-pointer bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-100/60 dark:hover:bg-slate-800/70 text-xs font-medium text-slate-700 dark:text-slate-300 select-none">
+          <span class="flex items-center space-x-2">
+            <i class="fa-regular fa-file-code text-slate-400"></i>
+            <span>Inspect or Edit Source Manifest (<code>main.tf</code>)</span>
+          </span>
+          <div class="flex items-center space-x-2">
+            <span class="text-[11px] text-slate-400 font-normal">Click to expand</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 group-open:rotate-180 transition-transform"></i>
+          </div>
+        </summary>
+        
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-500">You can paste or edit custom Terraform HCL here:</span>
+            <button id="btnLoadSample" class="text-xs font-medium text-sky-600 dark:text-sky-400 hover:underline">Reset to Default Sample</button>
+          </div>
+          <textarea id="hclInput" rows="12" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-3 font-mono text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 transition resize-none"></textarea>
+          
+          <div class="flex justify-end">
+            <button id="btnRunAudit" class="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition flex items-center space-x-2 shadow-sm">
               <i class="fa-solid fa-magnifying-glass text-xs"></i>
-              <span>Audit Manifest with Bedrock</span>
+              <span>Re-run Bedrock Audit</span>
             </button>
           </div>
         </div>
-      </div>
+      </details>
 
-      <!-- Right: Audit Findings, Reasoning & Unified Patches (7 cols) -->
-      <div class="lg:col-span-7 space-y-4">
-        
-        <!-- Architectural Analysis Summary (Markdown-Rendered & Formatted) -->
-        <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-            <div class="flex items-center space-x-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
-              <i class="fa-solid fa-shield-halved text-sky-500"></i>
-              <span>Architecture Assessment</span>
-            </div>
+      <!-- Collapsible Section 2: Full Bedrock Architectural Reasoning -->
+      <details class="group rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+        <summary class="flex items-center justify-between px-4 py-3 cursor-pointer bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-100/60 dark:hover:bg-slate-800/70 text-xs font-medium text-slate-700 dark:text-slate-300 select-none">
+          <span class="flex items-center space-x-2">
+            <i class="fa-solid fa-shield-halved text-sky-500"></i>
+            <span>Full Bedrock Architectural Assessment & Rationale</span>
+          </span>
+          <div class="flex items-center space-x-2">
             <span id="tokenUsageBadge" class="text-[11px] font-mono text-slate-400">Ready</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 group-open:rotate-180 transition-transform"></i>
           </div>
-          
-          <!-- Rendered Rich Markdown Content -->
+        </summary>
+        
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800">
           <div id="agentSummary" class="prose-custom text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-            Click "Audit Manifest with Bedrock" or choose a voice action above to evaluate the configuration.
+            Click "Re-run Bedrock Audit" or choose a voice action above to evaluate the configuration.
           </div>
         </div>
-
-        <!-- Findings List -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Findings & Staged Remediations</h3>
-          </div>
-          <div id="findingsContainer" class="space-y-3"></div>
-        </div>
-
-        <!-- Unified Diff Patch Box -->
-        <div id="diffContainer" class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hidden space-y-2.5">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center space-x-1.5">
-              <i class="fa-solid fa-code-compare text-xs"></i>
-              <span>Unified Terraform Patch</span>
-            </span>
-            <button id="btnCopyDiff" class="text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-2 py-1 rounded border border-slate-200 dark:border-slate-700">Copy Patch</button>
-          </div>
-          <pre id="diffCode" class="p-3.5 rounded-lg bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto shadow-inner"></pre>
-        </div>
-      </div>
+      </details>
     </div>
   </main>
 
   <!-- TAB 2: Standup Sync (Amazon Bee Wearable) -->
-  <section id="tabBee" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 hidden space-y-6">
+  <section id="tabBee" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 hidden space-y-6">
     <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -339,7 +345,7 @@
   </section>
 
   <!-- TAB 3: NOC Wallboard (Amazon Fire TV) -->
-  <section id="tabFiretv" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 hidden space-y-6">
+  <section id="tabFiretv" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 hidden space-y-6">
     <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
@@ -364,7 +370,7 @@
   </section>
 
   <!-- TAB 4: MCP Protocol Inspector -->
-  <section id="tabMcp" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 hidden space-y-4">
+  <section id="tabMcp" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 hidden space-y-4">
     <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -381,7 +387,6 @@
         </div>
       </div>
 
-      <!-- Human-Readable Executed Result Card -->
       <div id="mcpFormattedOutput" class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
         <div class="flex items-center justify-between">
           <span class="text-xs font-semibold text-slate-800 dark:text-slate-200" id="mcpResultTitle">Protocol Result</span>
@@ -392,7 +397,6 @@
         </div>
       </div>
 
-      <!-- Collapsible Raw JSON Accordion -->
       <details class="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
         <summary class="flex items-center justify-between px-4 py-2.5 cursor-pointer bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/50 dark:hover:bg-slate-800/60 text-xs font-medium text-slate-700 dark:text-slate-300 select-none">
           <span class="flex items-center space-x-2">
@@ -409,7 +413,7 @@
   </section>
 
   <!-- TAB 5: Architecture Feedback ("Shape" Deliverable) -->
-  <section id="tabShape" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 hidden space-y-4">
+  <section id="tabShape" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 hidden space-y-4">
     <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
       <div>
         <span class="text-[11px] font-medium text-indigo-600 dark:text-indigo-400">Developer Experience Feedback</span>
@@ -467,7 +471,6 @@
 
   <!-- Script Logic -->
   <script>
-    // Configure marked for clean safe rendering
     if (window.marked) {
       marked.setOptions({
         gfm: true,
@@ -475,7 +478,6 @@
       });
     }
 
-    // Theme Management (Light / Dark Switcher)
     function initTheme() {
       const saved = localStorage.getItem('cloudpulse-theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -535,7 +537,6 @@ resource "aws_instance" "batch_processor" {
     let tvTiles = [];
     let tvFocusIdx = 0;
 
-    // Fetch operational status cleanly
     fetch('/api/health').then(r => r.json()).then(h => {
       const label = document.getElementById('systemStatusLabel');
       if (h.bedrockMode === 'live') {
@@ -630,6 +631,7 @@ resource "aws_instance" "batch_processor" {
           const diffCode = document.getElementById('diffCode');
           diffCode.innerText = data.data.combinedDiff;
           diffContainer.classList.remove('hidden');
+          diffContainer.scrollIntoView({ behavior: 'smooth' });
         }
       } catch (err) {
         speechEl.innerText = 'Error: ' + err.message;
@@ -743,7 +745,6 @@ resource "aws_instance" "batch_processor" {
       });
       const data = await res.json();
       
-      // Update clean human-readable summary
       const titleEl = document.getElementById('mcpResultTitle');
       const summaryEl = document.getElementById('mcpResultSummary');
       const badgeEl = document.getElementById('mcpStatusBadge');
@@ -771,7 +772,6 @@ resource "aws_instance" "batch_processor" {
         }
       }
 
-      // Populate raw JSON in the accordion
       document.getElementById('mcpRpcOutput').innerText = JSON.stringify({ request: payload, response: data }, null, 2);
     };
 
@@ -794,7 +794,7 @@ resource "aws_instance" "batch_processor" {
       } catch (err) {
         alert('Audit failed: ' + err.message);
       } finally {
-        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass text-xs"></i><span>Audit Manifest with Bedrock</span>';
+        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass text-xs"></i><span>Re-run Bedrock Audit</span>';
       }
     };
 
@@ -829,20 +829,21 @@ resource "aws_instance" "batch_processor" {
           LOW: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-900'
         };
 
-        // Findings with Clean Summary and View Patch Trigger
         card.className = 'p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2';
         card.innerHTML = `
           <div class="flex items-center justify-between">
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeColors[f.severity]}">${f.severity} · ${f.pillar}</span>
-            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">${f.monthlySavingsUSD > 0 ? '+$' + f.monthlySavingsUSD + '/mo' : 'Governance Guardrail'}</span>
+            <div class="flex items-center space-x-2">
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeColors[f.severity]}">${f.severity}</span>
+              <span class="text-xs font-semibold text-slate-900 dark:text-white">${f.title}</span>
+            </div>
+            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">${f.monthlySavingsUSD > 0 ? '+$' + f.monthlySavingsUSD + '/mo' : 'Security Guardrail'}</span>
           </div>
-          <h4 class="text-xs font-semibold text-slate-900 dark:text-white">${f.title}</h4>
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">${f.description}</p>
           <div class="pt-1 flex items-center justify-between">
-            <span class="text-[10px] font-mono text-slate-400">${f.ruleId}</span>
-            <button onclick="viewPatch(${idx})" class="text-xs font-medium px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center space-x-1.5">
+            <span class="text-[11px] font-mono text-slate-400">${f.ruleId}</span>
+            <button onclick="viewPatch(${idx})" class="text-xs font-medium px-3 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition flex items-center space-x-1.5 shadow-sm">
               <span>View Unified Patch</span>
-              <i class="fa-solid fa-chevron-right text-[10px]"></i>
+              <i class="fa-solid fa-code text-[10px]"></i>
             </button>
           </div>
         `;
@@ -864,7 +865,7 @@ resource "aws_instance" "batch_processor" {
 
     document.getElementById('btnCopyDiff').onclick = () => {
       navigator.clipboard.writeText(document.getElementById('diffCode').innerText);
-      alert('Patch copied to clipboard!');
+      alert('Unified patch copied to clipboard!');
     };
 
     document.getElementById('btnRunAudit').click();
