@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CloudPulse AI — Unified Amazon Ecosystem Studio (Alexa+ • Bee • Fire TV • Bedrock)</title>
+  <title>CloudPulse — Cloud Security & FinOps Copilot</title>
   
-  <!-- Fonts -->
+  <!-- Typography: Inter for UI & JetBrains Mono for Code -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Tailwind & FontAwesome -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -18,19 +18,17 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
             mono: ['"JetBrains Mono"', 'monospace'],
           },
           colors: {
             brand: {
-              50: '#ecfeff',
-              100: '#cffafe',
-              500: '#06b6d4',
-              600: '#0891b2',
-              900: '#164e63',
-            },
-            alexa: '#00CAFF',
-            amazon: '#FF9900',
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+            }
           }
         }
       }
@@ -39,27 +37,23 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
-    @keyframes alexaPulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(0, 202, 255, 0.4), inset 0 0 10px rgba(0, 202, 255, 0.3); }
-      50% { box-shadow: 0 0 0 12px rgba(0, 202, 255, 0), inset 0 0 20px rgba(0, 202, 255, 0.6); }
-    }
-    .alexa-ring-active {
-      animation: alexaPulse 2.2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    body {
+      letter-spacing: -0.011em;
     }
     .tv-tile-focused {
-      outline: 3px solid #0284c7 !important;
-      transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 12px 24px -6px rgba(2, 132, 199, 0.3);
+      outline: 2px solid #0284c7 !important;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.25);
     }
     .dark .tv-tile-focused {
-      outline: 3px solid #38bdf8 !important;
-      box-shadow: 0 12px 28px -6px rgba(56, 189, 248, 0.4);
+      outline: 2px solid #38bdf8 !important;
+      box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.3);
     }
     /* Smooth theme transitions */
     body, header, nav, button, div, textarea, section, input {
-      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
-    /* Custom scrollbars */
+    /* Clean custom scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -68,266 +62,252 @@
       background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.4);
-      border-radius: 4px;
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #334155;
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans antialiased selection:bg-cyan-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans antialiased">
 
-  <!-- Top Global Header -->
-  <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md sticky top-0 z-40 shadow-sm">
+  <!-- Top App Navigation Bar -->
+  <header class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       
-      <!-- Brand Logo & Amazon Ecosystem Badges -->
-      <div class="flex items-center space-x-3.5">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20">
-          <i class="fa-solid fa-cloud-bolt text-lg"></i>
-        </div>
-        <div>
-          <div class="flex items-center space-x-2">
-            <span class="font-extrabold text-base tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">CloudPulse AI</span>
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-800 dark:bg-cyan-950/80 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800">Unified Studio</span>
+      <!-- Left: Logo & Context -->
+      <div class="flex items-center space-x-6">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 rounded-lg bg-slate-900 dark:bg-sky-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+            <i class="fa-solid fa-cloud-bolt text-xs text-sky-400 dark:text-slate-950"></i>
           </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Build, Ship, Shape: Amazon Developer Hackathon 2026</p>
+          <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white">CloudPulse</span>
         </div>
+
+        <!-- Segmented Navigation Links -->
+        <nav class="hidden md:flex items-center space-x-1 p-1 bg-slate-100 dark:bg-slate-800/60 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
+          <button id="tabMainBtn" onclick="switchTab('main')" class="px-3 py-1.5 rounded-md font-semibold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition">
+            Infrastructure Copilot
+          </button>
+          <button id="tabBeeBtn" onclick="switchTab('bee')" class="px-3 py-1.5 rounded-md hover:text-slate-900 dark:hover:text-white transition">
+            Standup Sync
+          </button>
+          <button id="tabFiretvBtn" onclick="switchTab('firetv')" class="px-3 py-1.5 rounded-md hover:text-slate-900 dark:hover:text-white transition">
+            NOC Wallboard
+          </button>
+          <button id="tabMcpBtn" onclick="switchTab('mcp')" class="px-3 py-1.5 rounded-md hover:text-slate-900 dark:hover:text-white transition">
+            MCP Protocol
+          </button>
+          <button id="tabShapeBtn" onclick="switchTab('shape')" class="px-3 py-1.5 rounded-md hover:text-slate-900 dark:hover:text-white transition">
+            Architecture Feedback
+          </button>
+        </nav>
       </div>
 
-      <!-- Controls: Bedrock Status & Light/Dark Switcher -->
+      <!-- Right: System Status & Theme Controls -->
       <div class="flex items-center space-x-3">
-        <!-- Live Model Indicator Pill -->
-        <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-[11px] font-mono">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-slate-600 dark:text-slate-300" id="modelLabel">amazon.nova-pro-v1:0</span>
+        <!-- Live System Operational Status -->
+        <div class="flex items-center space-x-2 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="systemStatusLabel">Connected to AWS Bedrock</span>
         </div>
 
-        <!-- Light / Dark Theme Toggle Button -->
-        <button id="themeToggleBtn" onclick="toggleTheme()" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center space-x-2 shadow-sm transition" title="Toggle Light/Dark Theme">
-          <i id="themeIcon" class="fa-solid fa-moon text-indigo-500"></i>
-          <span id="themeLabel">Dark Mode</span>
+        <!-- Light / Dark Theme Switcher -->
+        <button id="themeToggleBtn" onclick="toggleTheme()" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition border border-slate-200 dark:border-slate-700" title="Toggle Theme">
+          <i id="themeIcon" class="fa-solid fa-moon text-xs"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Modern Segmented Tab Navigation -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-5">
-    <div class="p-1.5 rounded-2xl bg-slate-200/70 dark:bg-slate-900 border border-slate-300/60 dark:border-slate-800/80 shadow-inner flex flex-wrap gap-1.5" role="tablist">
-      
-      <!-- Tab 1 -->
-      <button id="tabMainBtn" onclick="switchTab('main')" class="flex-1 min-w-[180px] py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-sm bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-300 border border-slate-200 dark:border-slate-700">
-        <i class="fa-solid fa-microphone-lines text-cyan-500"></i>
-        <span>🎙️ Alexa+ Voice Studio</span>
-      </button>
-
-      <!-- Tab 2 -->
-      <button id="tabBeeBtn" onclick="switchTab('bee')" class="flex-1 min-w-[180px] py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
-        <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
-        <span>🐝 Bee Wearable Sync</span>
-      </button>
-
-      <!-- Tab 3 -->
-      <button id="tabFiretvBtn" onclick="switchTab('firetv')" class="flex-1 min-w-[180px] py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
-        <i class="fa-solid fa-tv text-purple-500"></i>
-        <span>📺 Fire TV War-Room</span>
-      </button>
-
-      <!-- Tab 4 -->
-      <button id="tabMcpBtn" onclick="switchTab('mcp')" class="flex-1 min-w-[180px] py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
-        <i class="fa-solid fa-plug-circle-bolt text-emerald-500"></i>
-        <span>🔌 MCP 2026-07-28 Inspector</span>
-      </button>
-
-      <!-- Tab 5 -->
-      <button id="tabShapeBtn" onclick="switchTab('shape')" class="flex-1 min-w-[180px] py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
-        <i class="fa-solid fa-compass-drafting text-blue-500"></i>
-        <span>🛠️ "Shape" Feedback</span>
-      </button>
+  <!-- Mobile Segmented Navigation (Visible on Small Screens) -->
+  <div class="md:hidden max-w-7xl mx-auto px-4 pt-3">
+    <div class="flex overflow-x-auto py-1 gap-1 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
+      <button onclick="switchTab('main')" class="px-3 py-1.5 whitespace-nowrap rounded-md bg-slate-200 dark:bg-slate-800">Copilot</button>
+      <button onclick="switchTab('bee')" class="px-3 py-1.5 whitespace-nowrap rounded-md text-slate-600 dark:text-slate-400">Standup Sync</button>
+      <button onclick="switchTab('firetv')" class="px-3 py-1.5 whitespace-nowrap rounded-md text-slate-600 dark:text-slate-400">Wallboard</button>
+      <button onclick="switchTab('mcp')" class="px-3 py-1.5 whitespace-nowrap rounded-md text-slate-600 dark:text-slate-400">MCP</button>
+      <button onclick="switchTab('shape')" class="px-3 py-1.5 whitespace-nowrap rounded-md text-slate-600 dark:text-slate-400">Feedback</button>
     </div>
   </div>
 
-  <!-- TAB 1: Alexa+ Voice & Bedrock Studio -->
+  <!-- TAB 1: Main Infrastructure Copilot -->
   <main id="tabMain" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- Hero Alexa+ Conversational Command Bar -->
-    <section class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
-      <div class="absolute -right-12 -top-12 w-48 h-48 bg-cyan-500/10 dark:bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center space-x-4">
-          <div id="alexaOrb" class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white border-2 border-cyan-300 alexa-ring-active shrink-0 shadow-md shadow-cyan-500/20">
-            <i class="fa-solid fa-microphone text-lg"></i>
-          </div>
-          <div>
-            <div class="flex items-center space-x-2">
-              <h2 class="text-xs font-extrabold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">Alexa+ Agent Skill & MCP Dispatcher</h2>
-              <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-700 dark:bg-cyan-950/70 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800">Spec: 2026-07-28</span>
-            </div>
-            <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">Click any voice preset, use your browser microphone, or type an utterance below to trigger autonomous MCP tools.</p>
-          </div>
+    <!-- Unified Voice & Dispatch Prompt Bar -->
+    <section class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Voice & Agent Dispatch</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Speak or query CloudPulse via Alexa+ protocol or typed instructions.</p>
         </div>
 
-        <!-- Controls: Mic Button & TTS Toggle -->
-        <div class="flex items-center space-x-3">
-          <button id="btnMicInput" onclick="startLiveMicInput()" class="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 dark:bg-red-950/40 dark:hover:bg-red-950/70 dark:text-red-300 border border-red-200 dark:border-red-800 text-xs font-bold transition flex items-center space-x-2 shadow-sm">
-            <i class="fa-solid fa-microphone"></i>
-            <span id="micBtnLabel">Speak into Mic</span>
-          </button>
-          <label class="flex items-center space-x-2 text-xs text-slate-700 dark:text-slate-300 font-semibold cursor-pointer bg-slate-50 dark:bg-slate-800/80 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <input type="checkbox" id="voiceTtsToggle" checked class="accent-cyan-600 rounded">
-            <span>🔊 Speak Alexa Reply</span>
+        <div class="flex items-center space-x-3 text-xs text-slate-600 dark:text-slate-400">
+          <label class="flex items-center space-x-2 cursor-pointer font-medium">
+            <input type="checkbox" id="voiceTtsToggle" checked class="rounded border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-sky-500">
+            <span>Read responses aloud</span>
           </label>
         </div>
       </div>
 
-      <!-- Quick Action Voice Chips -->
-      <div class="mt-5 flex flex-wrap gap-2">
-        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse for my morning cloud briefing')" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-50 hover:bg-cyan-50 dark:bg-slate-800 dark:hover:bg-cyan-950/60 text-slate-800 dark:text-cyan-200 border border-slate-200 dark:border-cyan-900/60 transition flex items-center space-x-2 shadow-sm">
-          <i class="fa-solid fa-sun text-amber-500"></i>
-          <span>"Alexa, give me my morning cloud briefing"</span>
+      <!-- Input Bar with Inline Microphone -->
+      <div class="flex items-center bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg p-1.5 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500 transition">
+        <button id="btnMicInput" onclick="startLiveMicInput()" class="w-8 h-8 rounded-md bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 flex items-center justify-center transition shadow-sm border border-slate-200 dark:border-slate-700 shrink-0" title="Click to speak">
+          <i class="fa-solid fa-microphone text-xs"></i>
         </button>
-        <button onclick="sendAlexaUtterance('Alexa, sync my Amazon Bee wearable standup recording and verify in Terraform')" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-50 hover:bg-amber-50 dark:bg-slate-800 dark:hover:bg-yellow-950/60 text-slate-800 dark:text-amber-200 border border-slate-200 dark:border-yellow-900/60 transition flex items-center space-x-2 shadow-sm">
-          <i class="fa-solid fa-wave-square text-amber-500"></i>
-          <span>"Alexa, sync my Bee wearable standup notes"</span>
-        </button>
-        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to audit my Terraform with Amazon Bedrock')" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-50 hover:bg-cyan-50 dark:bg-slate-800 dark:hover:bg-cyan-950/60 text-slate-800 dark:text-cyan-200 border border-slate-200 dark:border-cyan-900/60 transition flex items-center space-x-2 shadow-sm">
-          <i class="fa-solid fa-shield-halved text-cyan-500"></i>
-          <span>"Alexa, audit my Terraform with Bedrock"</span>
-        </button>
-        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to fix all violations and ship a GitHub Pull Request')" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-50 hover:bg-emerald-50 dark:bg-slate-800 dark:hover:bg-emerald-950/60 text-slate-800 dark:text-emerald-200 border border-slate-200 dark:border-emerald-900/60 transition flex items-center space-x-2 shadow-sm">
-          <i class="fa-solid fa-code-pull-request text-emerald-500"></i>
-          <span>"Alexa, fix all violations & ship a GitHub PR"</span>
-        </button>
-        <button onclick="sendAlexaUtterance('Alexa, launch Fire TV war room wallboard')" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-50 hover:bg-purple-50 dark:bg-slate-800 dark:hover:bg-purple-950/60 text-slate-800 dark:text-purple-200 border border-slate-200 dark:border-purple-900/60 transition flex items-center space-x-2 shadow-sm">
-          <i class="fa-solid fa-tv text-purple-500"></i>
-          <span>"Alexa, launch Fire TV War-Room mode"</span>
+
+        <input id="alexaInput" type="text" placeholder="Ask a question about your infrastructure, or try a quick action below..." class="flex-1 bg-transparent px-3 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none">
+
+        <button onclick="sendAlexaUtterance(document.getElementById('alexaInput').value)" class="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 dark:bg-sky-600 dark:hover:bg-sky-500 text-white font-medium text-xs transition shrink-0">
+          Send
         </button>
       </div>
 
-      <!-- Custom Utterance Bar -->
-      <div class="mt-4 flex gap-2">
-        <input id="alexaInput" type="text" placeholder="Ask Alexa+ anything (e.g., 'Alexa, sync my Bee wearable meeting transcript')..." class="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-medium">
-        <button onclick="sendAlexaUtterance(document.getElementById('alexaInput').value)" class="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition shadow-sm shrink-0">
-          Send to Alexa+ MCP
+      <!-- Quick Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
+        <span class="text-slate-400 dark:text-slate-500 text-[11px] font-medium mr-1">Quick Actions:</span>
+        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse for my morning cloud briefing')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
+          ☀️ Morning Briefing
+        </button>
+        <button onclick="sendAlexaUtterance('Alexa, sync my Amazon Bee wearable standup recording and verify in Terraform')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
+          🐝 Sync Standup Notes
+        </button>
+        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to audit my Terraform with Amazon Bedrock')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
+          🛡️ Run Well-Architected Audit
+        </button>
+        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to fix all violations and ship a GitHub Pull Request')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
+          🚀 Synthesize & Create PR
+        </button>
+        <button onclick="sendAlexaUtterance('Alexa, launch Fire TV war room wallboard')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
+          📺 Open Wallboard Mode
         </button>
       </div>
 
-      <!-- Spoken Response Box -->
-      <div id="alexaResponseBox" class="mt-4 p-4 rounded-xl bg-cyan-50/50 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-800/60 hidden space-y-2">
+      <!-- Spoken Response Briefing Card -->
+      <div id="alexaResponseBox" class="mt-3 p-3.5 rounded-lg bg-sky-50 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 hidden space-y-1.5">
         <div class="flex items-center justify-between">
-          <span id="alexaCardTitle" class="text-xs font-bold text-cyan-800 dark:text-cyan-300">Alexa+ Response</span>
-          <span id="alexaMcpBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">MCP Tool</span>
+          <span id="alexaCardTitle" class="text-xs font-semibold text-sky-900 dark:text-sky-200 flex items-center space-x-1.5">
+            <i class="fa-solid fa-volume-high text-sky-500"></i>
+            <span>Spoken Summary</span>
+          </span>
+          <span id="alexaMcpBadge" class="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">Tool Result</span>
         </div>
-        <p id="alexaSpeechText" class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed italic font-medium"></p>
+        <p id="alexaSpeechText" class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-normal"></p>
       </div>
     </section>
 
     <!-- Workspace Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       
-      <!-- Left Column: IaC Manifest Editor (5 cols) -->
-      <div class="lg:col-span-5 space-y-4">
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-2">
-              <i class="fa-solid fa-code text-amber-500"></i>
-              <span>Terraform HCL Manifest</span>
-            </span>
-            <button id="btnLoadSample" class="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline">Reset Sample</button>
+      <!-- Left: Terraform Code Editor (5 cols) -->
+      <div class="lg:col-span-5 space-y-3">
+        <div class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
+            <div class="flex items-center space-x-2">
+              <i class="fa-regular fa-file-code text-slate-400"></i>
+              <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">main.tf</span>
+              <span class="text-[11px] text-slate-400 font-normal">Terraform Manifest</span>
+            </div>
+            <button id="btnLoadSample" class="text-xs font-medium text-sky-600 dark:text-sky-400 hover:underline">Reset</button>
           </div>
-          <textarea id="hclInput" rows="18" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-3.5 font-mono text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 transition resize-none"></textarea>
+          
+          <div class="p-3">
+            <textarea id="hclInput" rows="18" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-3 font-mono text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 transition resize-none"></textarea>
+          </div>
 
-          <button id="btnRunAudit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-xs shadow-md shadow-amber-500/20 transition flex items-center justify-center space-x-2">
-            <i class="fa-solid fa-magnifying-glass-chart"></i>
-            <span>Run Bedrock Converse Audit</span>
-          </button>
+          <div class="p-3 pt-0">
+            <button id="btnRunAudit" class="w-full py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition flex items-center justify-center space-x-2 shadow-sm">
+              <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              <span>Audit Manifest with Bedrock</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Right Column: Metrics, Reasoning & Patches (7 cols) -->
+      <!-- Right: Audit Findings, FinOps ROI & Patches (7 cols) -->
       <div class="lg:col-span-7 space-y-5">
         
-        <!-- Metrics Row -->
+        <!-- Scorecard Metrics Row -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Violations Found</span>
-            <div id="metricViolations" class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">4</div>
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Violations</span>
+            <div id="metricViolations" class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-0.5">4</div>
           </div>
-          <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Monthly Savings</span>
-            <div id="metricSavings" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">$462.53</div>
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Monthly Savings</span>
+            <div id="metricSavings" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">$462.53</div>
           </div>
-          <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Annualized ROI</span>
-            <div id="metricAnnual" class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">$5,550.36/yr</div>
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Annual Reduction</span>
+            <div id="metricAnnual" class="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">$5,550.36</div>
           </div>
-          <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Eval Benchmark</span>
-            <div class="text-2xl font-black text-cyan-600 dark:text-cyan-400 mt-1">F1 = 1.000</div>
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Detection Quality</span>
+            <div class="text-2xl font-bold text-sky-600 dark:text-sky-400 mt-0.5">F1: 1.000</div>
           </div>
         </div>
 
-        <!-- Bedrock Converse Reasoning Card -->
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2.5">
+        <!-- Architectural Analysis Summary -->
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
           <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2 text-xs font-bold text-amber-600 dark:text-amber-400">
-              <i class="fa-solid fa-brain"></i>
-              <span>Amazon Bedrock Converse Reasoning Summary</span>
-            </div>
-            <span id="tokenUsageBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold">Converse API Ready</span>
+            <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">Executive Summary</span>
+            <span id="tokenUsageBadge" class="text-[11px] font-mono text-slate-400">Ready</span>
           </div>
-          <div id="agentSummary" class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans font-medium">
-            Click "Run Bedrock Converse Audit" or trigger an Alexa+ voice command above.
+          <div id="agentSummary" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+            Click "Audit Manifest with Bedrock" or choose a voice action above to evaluate the configuration.
           </div>
         </div>
 
         <!-- Findings List -->
         <div class="space-y-3">
-          <h3 class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Well-Architected Findings & Synthesized Patches</h3>
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Findings & Staged Remediations</h3>
+          </div>
           <div id="findingsContainer" class="space-y-3"></div>
         </div>
 
-        <!-- Unified Diff Box -->
-        <div id="diffContainer" class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hidden space-y-3">
+        <!-- Unified Diff Patch Box -->
+        <div id="diffContainer" class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hidden space-y-2.5">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center space-x-2">
-              <i class="fa-solid fa-code-compare"></i>
-              <span>Synthesized Zero-Downtime Unified Patch</span>
+            <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center space-x-1.5">
+              <i class="fa-solid fa-code-compare text-xs"></i>
+              <span>Unified Terraform Patch</span>
             </span>
-            <button id="btnCopyDiff" class="text-[11px] font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">Copy Patch</button>
+            <button id="btnCopyDiff" class="text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-2 py-1 rounded border border-slate-200 dark:border-slate-700">Copy Patch</button>
           </div>
-          <pre id="diffCode" class="p-4 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto shadow-inner"></pre>
+          <pre id="diffCode" class="p-3.5 rounded-lg bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto shadow-inner"></pre>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- TAB 2: Amazon Bee Wearable Standup Sync -->
+  <!-- TAB 2: Standup Sync (Amazon Bee Wearable) -->
   <section id="tabBee" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 hidden space-y-6">
-    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-yellow-500/30 shadow-sm space-y-5">
+    <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-yellow-500/20 dark:text-yellow-300 border border-amber-300 dark:border-yellow-500/40">🐝 AMAZON BEE WEARABLE INTEGRATION</span>
-          <h2 class="text-base font-extrabold text-slate-900 dark:text-white mt-2">Ambient Architecture Standup Transcript → Verified Terraform Patches</h2>
-          <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">Ingests ambient conversations captured by the Amazon Bee AI wearable during engineering standups, extracts spoken infrastructure concerns, verifies them against your Terraform AST, and generates the Git diff automatically.</p>
+          <span class="text-[11px] font-medium text-amber-600 dark:text-amber-400">Amazon Bee Wearable Audio Ingestion</span>
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Standup Transcript → Verified Infrastructure Patches</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Captures spoken engineering concerns from morning standups, maps them to AWS Well-Architected rules, and verifies them against the active Terraform AST.</p>
         </div>
-        <button onclick="runBeeIngest()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-yellow-400 dark:hover:bg-yellow-300 text-slate-950 font-extrabold text-xs transition shadow-sm shrink-0">
-          🐝 Sync Bee Wearable Transcript
+        <button onclick="runBeeIngest()" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition shadow-sm shrink-0">
+          Sync Standup Audio
         </button>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-5 space-y-2">
-          <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Captured Amazon Bee Standup Transcript</label>
-          <textarea id="beeTranscriptInput" rows="10" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-3.5 font-mono text-xs text-slate-800 dark:text-yellow-100 focus:outline-none focus:ring-2 focus:ring-amber-500">[09:14:02] Sarah (SRE Lead): Morning team. Before Friday's cutover, I noticed our web security group still has port 22 SSH open to 0.0.0.0/0.
+          <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Standup Audio Transcript</label>
+          <textarea id="beeTranscriptInput" rows="10" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-3 font-mono text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500">[09:14:02] Sarah (SRE Lead): Morning team. Before Friday's cutover, I noticed our web security group still has port 22 SSH open to 0.0.0.0/0.
 [09:14:19] Alex (Platform Eng): Good catch. Also, app_db Postgres in staging is running without storage encryption or Multi-AZ failover.
 [09:14:41] Priya (FinOps): And please check batch_processor — it's sitting on an m5.4xlarge burning budget when a Graviton m7g.xlarge would cut costs by over $270 a month.</textarea>
         </div>
         <div class="lg:col-span-7 space-y-3">
-          <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Extracted Spoken Action Items & Terraform AST Verification</label>
+          <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Extracted Spoken Concerns & Code Verification</label>
           <div id="beeActionItemsContainer" class="space-y-2.5">
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
-              Click "🐝 Sync Bee Wearable Transcript" to correlate spoken meeting notes with your Terraform manifest.
+            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-500">
+              Click "Sync Standup Audio" to parse spoken notes and verify against your manifest.
             </div>
           </div>
         </div>
@@ -335,99 +315,103 @@
     </div>
   </section>
 
-  <!-- TAB 3: Amazon Fire TV 10-Foot War-Room Wallboard -->
+  <!-- TAB 3: NOC Wallboard (Amazon Fire TV) -->
   <section id="tabFiretv" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 hidden space-y-6">
-    <div class="p-6 rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950 border-2 border-purple-300 dark:border-purple-500/40 shadow-xl space-y-6">
+    <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-300 dark:border-purple-500/40">📺 AMAZON FIRE TV 10-FOOT NOC WALLBOARD</span>
-          <h2 class="text-xl font-black text-slate-900 dark:text-white mt-2">Engineering War-Room Live Posture Display</h2>
-          <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">Designed for office wall-mounted Fire TV displays. Use your keyboard or Fire TV D-Pad remote (<kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-cyan-700 dark:text-cyan-300 font-mono">◀</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-cyan-700 dark:text-cyan-300 font-mono">▶</kbd> + <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-cyan-700 dark:text-cyan-300 font-mono">Enter</kbd>) to focus and inspect remediation tiles from across the room.</p>
+          <span class="text-[11px] font-medium text-purple-600 dark:text-purple-400">10-Foot Wall Display Interface</span>
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Engineering War-Room Posture Board</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Optimized for Fire TV wall displays. Navigate tiles using keyboard arrows (<kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">◀</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">▶</kbd>) and <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">Enter</kbd>.</p>
         </div>
         <div class="flex gap-2">
-          <button onclick="moveTvFocus(-1)" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold border border-slate-200 dark:border-slate-700">◀ D-Pad Left</button>
-          <button onclick="moveTvFocus(1)" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold border border-slate-200 dark:border-slate-700">D-Pad Right ▶</button>
-          <button onclick="selectTvTile()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-extrabold shadow-sm">⏎ Select Tile</button>
+          <button onclick="moveTvFocus(-1)" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium border border-slate-200 dark:border-slate-700">◀ D-Pad Left</button>
+          <button onclick="moveTvFocus(1)" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium border border-slate-200 dark:border-slate-700">D-Pad Right ▶</button>
+          <button onclick="selectTvTile()" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium shadow-sm">⏎ Select</button>
         </div>
       </div>
 
-      <div id="fireTvTilesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+      <div id="fireTvTilesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
 
-      <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-        <div class="text-xs font-bold text-purple-700 dark:text-purple-300 mb-2">📺 Focused Tile Unified Remediation Patch (10-Foot View)</div>
-        <pre id="fireTvPatchPreview" class="p-4 rounded-xl bg-slate-900 text-emerald-400 font-mono text-xs overflow-x-auto shadow-inner">Use D-Pad Left/Right or click a tile above to inspect its remediation patch.</pre>
+      <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+        <div class="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">Remediation Patch Preview:</div>
+        <pre id="fireTvPatchPreview" class="p-3.5 rounded-lg bg-slate-900 text-emerald-400 font-mono text-xs overflow-x-auto shadow-inner">Use arrow keys or select a tile above to preview its patch.</pre>
       </div>
     </div>
   </section>
 
-  <!-- TAB 4: MCP 2026-07-28 Inspector -->
+  <!-- TAB 4: MCP Protocol Inspector -->
   <section id="tabMcp" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 hidden space-y-4">
-    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+    <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 class="text-sm font-extrabold text-cyan-700 dark:text-cyan-300">Self-Hosted Alexa+ MCP Server Inspector (`/api/mcp` • Spec `2026-07-28`)</h2>
-          <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">Stateless MCP `2026-07-28` JSON-RPC 2.0 server with `_meta["io.modelcontextprotocol/protocolVersion"]`, JSON Schema 2020-12 `outputSchema`, and backwards-compatible `2025-11-25` `initialize` support.</p>
+          <span class="text-[11px] font-medium text-sky-600 dark:text-sky-400">JSON-RPC 2.0 Endpoint (`/api/mcp`)</span>
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Model Context Protocol (MCP 2026-07-28)</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Stateless per-request protocol versioning, structured output schemas, and tool execution.</p>
         </div>
-        <div class="flex flex-wrap gap-2">
-          <button onclick="runMcpRpc('initialize')" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-mono font-semibold text-slate-700 dark:text-cyan-300 border border-slate-200 dark:border-slate-700">initialize</button>
-          <button onclick="runMcpRpc('tools/list')" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-mono font-semibold text-slate-700 dark:text-cyan-300 border border-slate-200 dark:border-slate-700">tools/list (6 tools + outputSchema)</button>
-          <button onclick="runMcpRpc('tools/call', 'get_morning_cloud_briefing')" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs font-mono font-bold text-white shadow-sm">tools/call (briefing)</button>
-          <button onclick="runMcpRpc('tools/call', 'ingest_bee_meeting_transcript')" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-xs font-mono font-bold text-white shadow-sm">tools/call (bee_sync)</button>
-          <button onclick="runMcpRpc('tools/call', 'get_firetv_wallboard_state')" class="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-xs font-mono font-bold text-white shadow-sm">tools/call (firetv)</button>
+        <div class="flex flex-wrap gap-2 text-xs">
+          <button onclick="runMcpRpc('initialize')" class="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">initialize</button>
+          <button onclick="runMcpRpc('tools/list')" class="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">tools/list</button>
+          <button onclick="runMcpRpc('tools/call', 'get_morning_cloud_briefing')" class="px-3 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 font-medium text-white shadow-sm">tools/call (briefing)</button>
+          <button onclick="runMcpRpc('tools/call', 'ingest_bee_meeting_transcript')" class="px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-500 font-medium text-white shadow-sm">tools/call (bee_sync)</button>
+          <button onclick="runMcpRpc('tools/call', 'get_firetv_wallboard_state')" class="px-3 py-1.5 rounded-md bg-purple-600 hover:bg-purple-500 font-medium text-white shadow-sm">tools/call (wallboard)</button>
         </div>
       </div>
-      <pre id="mcpRpcOutput" class="p-4 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto max-h-96 shadow-inner">Click any JSON-RPC method button above to inspect the live MCP 2026-07-28 payload.</pre>
+      <pre id="mcpRpcOutput" class="p-4 rounded-lg bg-slate-900 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto max-h-96 shadow-inner">Click any JSON-RPC method above to execute live protocol calls.</pre>
     </div>
   </section>
 
-  <!-- TAB 5: "Shape" Amazon Developer Feedback -->
+  <!-- TAB 5: Architecture Feedback ("Shape" Deliverable) -->
   <section id="tabShape" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 hidden space-y-4">
-    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+    <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
       <div>
-        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-amber-500/20 dark:text-amber-300 border border-blue-200 dark:border-amber-500/40">MANDATORY "SHAPE" TRACK DELIVERABLE</span>
-        <h2 class="text-base font-extrabold text-slate-900 dark:text-white mt-2">Structured Product Feedback for Amazon Developer & Bedrock Engineering Teams</h2>
-        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">Actionable friction points, schema observations, and feature requests gathered while building CloudPulse AI across Alexa+ MCP (`2026-07-28`), Amazon Bee, Fire TV, and Amazon Bedrock Converse API.</p>
+        <span class="text-[11px] font-medium text-indigo-600 dark:text-indigo-400">Developer Experience Feedback</span>
+        <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Recommendations for Amazon Product & Platform Teams</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Friction points and architectural opportunities identified while building across Alexa+ MCP, Bedrock Converse, Bee Wearable, and Fire TV.</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5">
-          <div class="text-xs font-bold text-cyan-700 dark:text-cyan-400 flex items-center space-x-2">
-            <i class="fa-solid fa-microphone-lines"></i>
-            <span>1. Alexa+ MCP (2026-07-28) & Bedrock Schema Alignment</span>
+        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+          <div class="text-xs font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+            <span class="w-5 h-5 rounded bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400 flex items-center justify-center text-[10px]">1</span>
+            <span>Alexa+ MCP & Bedrock Converse Schema Alignment</span>
           </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-            <strong>Friction:</strong> Mapping MCP `2026-07-28` JSON Schema 2020-12 `inputSchema` / `outputSchema` to Bedrock Converse `toolSpec.inputSchema.json` requires manual wrapper conversion.<br><br>
-            <strong>Recommendation:</strong> Provide a native `@amazon-alexa/mcp-bedrock-bridge` utility that automatically translates MCP `2026-07-28` `tools/list` descriptors into Bedrock `ConverseCommand` `toolConfig` definitions and Alexa+ voice slot types.
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <strong>Friction:</strong> Mapping MCP JSON Schema 2020-12 descriptors into Bedrock Converse <code class="font-mono text-[11px]">toolSpec.inputSchema.json</code> requires custom runtime adapters.<br>
+            <strong>Recommendation:</strong> Ship an official <code class="font-mono text-[11px]">@amazon-alexa/mcp-bedrock-bridge</code> library to serialize MCP tools directly into Converse parameters.
           </p>
         </div>
-        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5">
-          <div class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center space-x-2">
-            <i class="fa-solid fa-brain"></i>
-            <span>2. Bedrock Converse Model ID Portability</span>
+
+        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+          <div class="text-xs font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+            <span class="w-5 h-5 rounded bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px]">2</span>
+            <span>Bedrock Tool-Use Model Introspection</span>
           </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-            <strong>Friction:</strong> Cross-region inference profile prefixes (`us.anthropic...`) vs direct foundation model IDs (`amazon.nova-pro-v1:0`) behave differently depending on account marketplace entitlements.<br><br>
-            <strong>Recommendation:</strong> Add a `ConverseCapabilities` discovery call in `@aws-sdk/client-bedrock-runtime` that returns the account's currently callable tool-use models without trial-and-error invocation.
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <strong>Friction:</strong> Foundation models fail differently if the caller's IAM principal lacks tool-use entitlements in a specific region.<br>
+            <strong>Recommendation:</strong> Add a <code class="font-mono text-[11px]">listConverseReadyModels()</code> API filter in the Bedrock SDK to discover callable tool-use models cleanly.
           </p>
         </div>
-        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5">
-          <div class="text-xs font-bold text-yellow-600 dark:text-yellow-400 flex items-center space-x-2">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <span>3. Amazon Bee Wearable Structured Webhook Events</span>
+
+        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+          <div class="text-xs font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+            <span class="w-5 h-5 rounded bg-yellow-100 dark:bg-yellow-950 text-yellow-600 dark:text-yellow-400 flex items-center justify-center text-[10px]">3</span>
+            <span>Bee Wearable Structured Webhook Dispatches</span>
           </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-            <strong>Friction:</strong> Ambient meeting transcripts from wearables arrive as unstructured dialogue turns without speaker role tagging or technical entity extraction.<br><br>
-            <strong>Recommendation:</strong> Expose an MCP-compatible `bee://memories/action-items` resource stream that emits speaker-attributed technical intents directly to registered Alexa+ MCP servers.
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <strong>Friction:</strong> Wearable meeting transcripts stream unformatted conversational audio without infrastructure entity tagging.<br>
+            <strong>Recommendation:</strong> Allow Bee apps to register domain entity extractors that emit signed JSON-RPC events directly to self-hosted MCP endpoints.
           </p>
         </div>
-        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5">
-          <div class="text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center space-x-2">
-            <i class="fa-solid fa-tv"></i>
-            <span>4. Fire TV Vega OS / Web App D-Pad Focus Standard</span>
+
+        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+          <div class="text-xs font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+            <span class="w-5 h-5 rounded bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px]">4</span>
+            <span>Fire TV Web App Spatial Navigation Standard</span>
           </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-            <strong>Friction:</strong> Building 10-foot engineering wallboards for Fire TV requires custom keyCode/spatial navigation handling across web and native views.<br><br>
-            <strong>Recommendation:</strong> Provide a lightweight `@amazon-devices/vega-web-spatial-nav` polyfill so web-based MCP visual cards automatically support Fire TV directional remote controls.
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <strong>Friction:</strong> Creating 10-foot NOC interfaces for Fire TV requires custom key-down spatial focus handlers.<br>
+            <strong>Recommendation:</strong> Release an official web spatial navigation polyfill for Fire TV / Vega OS browsers.
           </p>
         </div>
       </div>
@@ -436,7 +420,7 @@
 
   <!-- Script Logic -->
   <script>
-    // Theme Management (Light / Dark Switcher with LocalStorage)
+    // Theme Management (Light / Dark Switcher)
     function initTheme() {
       const saved = localStorage.getItem('cloudpulse-theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -447,18 +431,15 @@
     function applyTheme(isDark) {
       const html = document.documentElement;
       const icon = document.getElementById('themeIcon');
-      const label = document.getElementById('themeLabel');
       if (isDark) {
         html.classList.add('dark');
         html.classList.remove('light');
-        icon.className = 'fa-solid fa-sun text-amber-400';
-        label.innerText = 'Light Mode';
+        icon.className = 'fa-solid fa-sun text-xs text-amber-400';
         localStorage.setItem('cloudpulse-theme', 'dark');
       } else {
         html.classList.remove('dark');
         html.classList.add('light');
-        icon.className = 'fa-solid fa-moon text-indigo-500';
-        label.innerText = 'Dark Mode';
+        icon.className = 'fa-solid fa-moon text-xs text-slate-600';
         localStorage.setItem('cloudpulse-theme', 'light');
       }
     }
@@ -499,8 +480,14 @@ resource "aws_instance" "batch_processor" {
     let tvTiles = [];
     let tvFocusIdx = 0;
 
+    // Fetch operational status cleanly
     fetch('/api/health').then(r => r.json()).then(h => {
-      document.getElementById('modelLabel').innerText = `${h.modelId} (${h.bedrockMode})`;
+      const label = document.getElementById('systemStatusLabel');
+      if (h.bedrockMode === 'live') {
+        label.innerText = 'Connected to AWS Bedrock (US-East-1)';
+      } else {
+        label.innerText = 'Offline Deterministic Engine';
+      }
     }).catch(() => {});
 
     window.switchTab = function(tab) {
@@ -509,10 +496,14 @@ resource "aws_instance" "batch_processor" {
         const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
         if (t === tab) {
           el.classList.remove('hidden');
-          btn.className = 'flex-1 min-w-[180px] py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-sm bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-300 border border-slate-200 dark:border-slate-700';
+          if (btn) {
+            btn.className = 'px-3 py-1.5 rounded-md font-semibold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition';
+          }
         } else {
           el.classList.add('hidden');
-          btn.className = 'flex-1 min-w-[180px] py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+          if (btn) {
+            btn.className = 'px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition';
+          }
         }
       });
       if (tab === 'mcp') runMcpRpc('tools/list');
@@ -523,21 +514,21 @@ resource "aws_instance" "batch_processor" {
     window.startLiveMicInput = function() {
       const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRec) {
-        alert('Browser SpeechRecognition is supported in Chrome & Edge. You can also click any of the voice command preset chips!');
+        alert('Browser SpeechRecognition is supported in Chrome & Edge. You can also click any of the quick action buttons!');
         return;
       }
       const rec = new SpeechRec();
       rec.lang = 'en-US';
       rec.interimResults = false;
-      const label = document.getElementById('micBtnLabel');
-      label.innerText = 'Listening...';
+      const micBtn = document.getElementById('btnMicInput');
+      micBtn.classList.add('text-rose-600', 'animate-pulse');
       rec.onresult = (e) => {
         const transcript = e.results[0][0].transcript;
-        label.innerText = 'Speak into Mic';
+        micBtn.classList.remove('text-rose-600', 'animate-pulse');
         sendAlexaUtterance(transcript);
       };
-      rec.onerror = () => { label.innerText = 'Speak into Mic'; };
-      rec.onend = () => { label.innerText = 'Speak into Mic'; };
+      rec.onerror = () => { micBtn.classList.remove('text-rose-600', 'animate-pulse'); };
+      rec.onend = () => { micBtn.classList.remove('text-rose-600', 'animate-pulse'); };
       rec.start();
     };
 
@@ -549,7 +540,7 @@ resource "aws_instance" "batch_processor" {
       const titleEl = document.getElementById('alexaCardTitle');
       const badgeEl = document.getElementById('alexaMcpBadge');
       box.classList.remove('hidden');
-      speechEl.innerText = 'Alexa+ is invoking CloudPulse MCP server...';
+      speechEl.innerText = 'Evaluating prompt against infrastructure manifest...';
 
       try {
         const res = await fetch('/api/alexa', {
@@ -562,8 +553,8 @@ resource "aws_instance" "batch_processor" {
           })
         });
         const data = await res.json();
-        titleEl.innerText = data.cardTitle || 'Alexa+ Response';
-        badgeEl.innerText = `MCP ${data.mcpMethodCalled} → ${data.mcpToolName}`;
+        titleEl.innerHTML = `<i class="fa-solid fa-volume-high text-sky-500 mr-1.5"></i><span>${data.cardTitle || 'Voice Briefing'}</span>`;
+        badgeEl.innerText = `${data.mcpToolName}`;
         speechEl.innerText = `"${data.spokenSpeech}"`;
 
         if (document.getElementById('voiceTtsToggle').checked && 'speechSynthesis' in window) {
@@ -606,16 +597,16 @@ resource "aws_instance" "batch_processor" {
       container.innerHTML = '';
       (data.extractedActionItems || []).forEach(item => {
         const div = document.createElement('div');
-        div.className = 'p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2';
+        div.className = 'p-3.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5';
         div.innerHTML = `
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-amber-700 dark:text-yellow-300">🎙️ ${item.speaker}</span>
-            <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded ${item.matchedInTerraform ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}">
-              ${item.matchedInTerraform ? '✓ Verified in Terraform AST (' + item.inferredRuleId + ')' : item.inferredRuleId}
+            <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">${item.speaker}</span>
+            <span class="text-[11px] font-medium px-2 py-0.5 rounded ${item.matchedInTerraform ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}">
+              ${item.matchedInTerraform ? 'Verified in Terraform' : item.inferredRuleId}
             </span>
           </div>
-          <p class="text-xs text-slate-700 dark:text-slate-300 italic font-medium">"${item.quote}"</p>
-          <div class="text-[11px] text-cyan-700 dark:text-cyan-300 font-bold">→ Staged Action: ${item.remediationSummary}</div>
+          <p class="text-xs text-slate-600 dark:text-slate-300 italic">"${item.quote}"</p>
+          <div class="text-[11px] text-sky-700 dark:text-sky-400 font-medium">Action: ${item.remediationSummary}</div>
         `;
         container.appendChild(div);
       });
@@ -638,15 +629,15 @@ resource "aws_instance" "batch_processor" {
       grid.innerHTML = '';
       tvTiles.forEach((t, idx) => {
         const div = document.createElement('div');
-        div.className = `p-5 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 cursor-pointer transition ${idx === tvFocusIdx ? 'tv-tile-focused' : ''}`;
+        div.className = `p-4 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 cursor-pointer transition ${idx === tvFocusIdx ? 'tv-tile-focused' : ''}`;
         div.onclick = () => { tvFocusIdx = idx; renderFireTvTiles(); selectTvTile(); };
         div.innerHTML = `
           <div class="flex items-center justify-between mb-2">
-            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-rose-100 text-rose-700 dark:bg-red-500/20 dark:text-red-300 border border-rose-200 dark:border-red-500/40">${t.severity}</span>
-            <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">${t.monthlySavingsUSD > 0 ? '$' + t.monthlySavingsUSD + '/mo' : t.pillar}</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900">${t.severity}</span>
+            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">${t.monthlySavingsUSD > 0 ? '$' + t.monthlySavingsUSD + '/mo' : t.pillar}</span>
           </div>
-          <div class="text-sm font-black text-slate-900 dark:text-white">${t.title}</div>
-          <div class="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-2">${t.ruleId}</div>
+          <div class="text-xs font-semibold text-slate-900 dark:text-white">${t.title}</div>
+          <div class="text-[10px] font-mono text-slate-400 mt-1">${t.ruleId}</div>
         `;
         grid.appendChild(div);
       });
@@ -703,7 +694,7 @@ resource "aws_instance" "batch_processor" {
 
     document.getElementById('btnRunAudit').onclick = async () => {
       const btn = document.getElementById('btnRunAudit');
-      btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>Auditing with Bedrock...</span>';
+      btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i><span>Auditing...</span>';
 
       try {
         const res = await fetch('/api/audit', {
@@ -716,7 +707,7 @@ resource "aws_instance" "batch_processor" {
       } catch (err) {
         alert('Audit failed: ' + err.message);
       } finally {
-        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart"></i><span>Run Bedrock Converse Audit</span>';
+        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass text-xs"></i><span>Audit Manifest with Bedrock</span>';
       }
     };
 
@@ -727,7 +718,7 @@ resource "aws_instance" "batch_processor" {
       document.getElementById('metricAnnual').innerText = `$${Math.round(audit.totalMonthlySavingsUSD * 12 * 100) / 100}/yr`;
 
       if (usage && usage.totalTokens > 0) {
-        document.getElementById('tokenUsageBadge').innerText = `${modelId} • ${usage.totalTokens} tokens`;
+        document.getElementById('tokenUsageBadge').innerText = `${usage.totalTokens} tokens processed`;
       }
 
       if (output && output.message && output.message.content) {
@@ -743,24 +734,24 @@ resource "aws_instance" "batch_processor" {
       audit.findings.forEach((f, idx) => {
         const card = document.createElement('div');
         const badgeColors = {
-          CRITICAL: 'bg-rose-100 text-rose-700 dark:bg-red-500/20 dark:text-red-400 border-rose-300 dark:border-red-500/40',
-          HIGH: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 border-orange-300 dark:border-orange-500/40',
-          MEDIUM: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border-amber-300 dark:border-amber-500/40',
-          LOW: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 border-blue-300 dark:border-blue-500/40'
+          CRITICAL: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border-rose-200 dark:border-rose-900',
+          HIGH: 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300 border-orange-200 dark:border-orange-900',
+          MEDIUM: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-900',
+          LOW: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-900'
         };
 
-        card.className = 'p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition space-y-2.5';
+        card.className = 'p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2';
         card.innerHTML = `
           <div class="flex items-center justify-between">
-            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${badgeColors[f.severity]}">${f.severity} • ${f.pillar}</span>
-            <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">${f.monthlySavingsUSD > 0 ? '+$' + f.monthlySavingsUSD + '/mo' : 'Security / Reliability Guardrail'}</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeColors[f.severity]}">${f.severity} · ${f.pillar}</span>
+            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">${f.monthlySavingsUSD > 0 ? '+$' + f.monthlySavingsUSD + '/mo' : 'Governance Guardrail'}</span>
           </div>
-          <h4 class="text-xs font-bold text-slate-900 dark:text-white">${f.title}</h4>
-          <p class="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed">${f.description}</p>
-          <div class="pt-2 flex justify-end">
-            <button onclick="viewPatch(${idx})" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center space-x-1.5 shadow-sm">
-              <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
-              <span>View Synthesized Patch</span>
+          <h4 class="text-xs font-semibold text-slate-900 dark:text-white">${f.title}</h4>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">${f.description}</p>
+          <div class="pt-1 flex justify-end">
+            <button onclick="viewPatch(${idx})" class="text-xs font-medium px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center space-x-1.5">
+              <span>View Patch</span>
+              <i class="fa-solid fa-chevron-right text-[10px]"></i>
             </button>
           </div>
         `;
@@ -782,7 +773,7 @@ resource "aws_instance" "batch_processor" {
 
     document.getElementById('btnCopyDiff').onclick = () => {
       navigator.clipboard.writeText(document.getElementById('diffCode').innerText);
-      alert('Unified git patch copied to clipboard!');
+      alert('Patch copied to clipboard!');
     };
 
     document.getElementById('btnRunAudit').click();
