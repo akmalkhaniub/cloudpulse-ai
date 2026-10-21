@@ -20,15 +20,6 @@
           fontFamily: {
             sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
             mono: ['"JetBrains Mono"', 'monospace'],
-          },
-          colors: {
-            brand: {
-              50: '#f0f9ff',
-              100: '#e0f2fe',
-              500: '#0284c7',
-              600: '#0369a1',
-              700: '#075985',
-            }
           }
         }
       }
@@ -49,11 +40,9 @@
       outline: 2px solid #38bdf8 !important;
       box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.3);
     }
-    /* Smooth theme transitions */
     body, header, nav, button, div, textarea, section, input {
       transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
-    /* Clean custom scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -76,9 +65,9 @@
   <header class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       
-      <!-- Left: Logo & Context -->
+      <!-- Left: Logo & Segmented Navigation -->
       <div class="flex items-center space-x-6">
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-2.5">
           <div class="w-8 h-8 rounded-lg bg-slate-900 dark:bg-sky-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">
             <i class="fa-solid fa-cloud-bolt text-xs text-sky-400 dark:text-slate-950"></i>
           </div>
@@ -107,13 +96,11 @@
 
       <!-- Right: System Status & Theme Controls -->
       <div class="flex items-center space-x-3">
-        <!-- Live System Operational Status -->
         <div class="flex items-center space-x-2 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
           <span id="systemStatusLabel">Connected to AWS Bedrock</span>
         </div>
 
-        <!-- Light / Dark Theme Switcher -->
         <button id="themeToggleBtn" onclick="toggleTheme()" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition border border-slate-200 dark:border-slate-700" title="Toggle Theme">
           <i id="themeIcon" class="fa-solid fa-moon text-xs"></i>
         </button>
@@ -121,7 +108,7 @@
     </div>
   </header>
 
-  <!-- Mobile Segmented Navigation (Visible on Small Screens) -->
+  <!-- Mobile Segmented Navigation -->
   <div class="md:hidden max-w-7xl mx-auto px-4 pt-3">
     <div class="flex overflow-x-auto py-1 gap-1 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
       <button onclick="switchTab('main')" class="px-3 py-1.5 whitespace-nowrap rounded-md bg-slate-200 dark:bg-slate-800">Copilot</button>
@@ -228,23 +215,27 @@
       <!-- Right: Audit Findings, FinOps ROI & Patches (7 cols) -->
       <div class="lg:col-span-7 space-y-5">
         
-        <!-- Scorecard Metrics Row -->
+        <!-- Scorecard Metrics Row: Actionable Real-World Metrics -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Violations</span>
-            <div id="metricViolations" class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-0.5">4</div>
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Security Risks</span>
+            <div id="metricSecurity" class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-0.5">2 Critical</div>
+            <span class="text-[10px] text-slate-400">Open SSH & Unencrypted DB</span>
           </div>
           <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
             <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Monthly Savings</span>
             <div id="metricSavings" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">$462.53</div>
+            <span class="text-[10px] text-slate-400">From rightsizing EC2 & EBS</span>
           </div>
           <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
             <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Annual Reduction</span>
             <div id="metricAnnual" class="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">$5,550.36</div>
+            <span class="text-[10px] text-slate-400">Annualized cloud budget</span>
           </div>
           <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Detection Quality</span>
-            <div class="text-2xl font-bold text-sky-600 dark:text-sky-400 mt-0.5">F1: 1.000</div>
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Resources Scanned</span>
+            <div id="metricScanned" class="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">3 Total</div>
+            <span class="text-[10px] text-slate-400">100% policy compliance check</span>
           </div>
         </div>
 
@@ -340,14 +331,14 @@
     </div>
   </section>
 
-  <!-- TAB 4: MCP Protocol Inspector -->
+  <!-- TAB 4: MCP Protocol Inspector (Now with Clean Summary + Collapsible Raw Payload) -->
   <section id="tabMcp" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 hidden space-y-4">
-    <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+    <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <span class="text-[11px] font-medium text-sky-600 dark:text-sky-400">JSON-RPC 2.0 Endpoint (`/api/mcp`)</span>
           <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Model Context Protocol (MCP 2026-07-28)</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Stateless per-request protocol versioning, structured output schemas, and tool execution.</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Stateless per-request protocol versioning, structured output schemas, and registered tool executions.</p>
         </div>
         <div class="flex flex-wrap gap-2 text-xs">
           <button onclick="runMcpRpc('initialize')" class="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">initialize</button>
@@ -357,7 +348,31 @@
           <button onclick="runMcpRpc('tools/call', 'get_firetv_wallboard_state')" class="px-3 py-1.5 rounded-md bg-purple-600 hover:bg-purple-500 font-medium text-white shadow-sm">tools/call (wallboard)</button>
         </div>
       </div>
-      <pre id="mcpRpcOutput" class="p-4 rounded-lg bg-slate-900 border border-slate-800 font-mono text-xs text-emerald-300 overflow-x-auto max-h-96 shadow-inner">Click any JSON-RPC method above to execute live protocol calls.</pre>
+
+      <!-- Human-Readable Executed Result Card -->
+      <div id="mcpFormattedOutput" class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200" id="mcpResultTitle">Protocol Result</span>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300" id="mcpStatusBadge">Status: OK</span>
+        </div>
+        <div id="mcpResultSummary" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+          Click any protocol method above to test communication with the self-hosted MCP server.
+        </div>
+      </div>
+
+      <!-- Collapsible Raw JSON Accordion -->
+      <details class="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+        <summary class="flex items-center justify-between px-4 py-2.5 cursor-pointer bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/50 dark:hover:bg-slate-800/60 text-xs font-medium text-slate-700 dark:text-slate-300 select-none">
+          <span class="flex items-center space-x-2">
+            <i class="fa-solid fa-code text-[11px] text-slate-400"></i>
+            <span>View Raw JSON-RPC 2.0 Request & Response Payload</span>
+          </span>
+          <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 group-open:rotate-180 transition-transform"></i>
+        </summary>
+        <div class="p-3 bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+          <pre id="mcpRpcOutput" class="text-emerald-400 font-mono text-xs overflow-x-auto max-h-72 leading-relaxed">No request executed yet.</pre>
+        </div>
+      </details>
     </div>
   </section>
 
@@ -676,6 +691,8 @@ resource "aws_instance" "batch_processor" {
         },
         params: method === 'tools/call' ? { name: toolName, arguments: { hclContent: hclInput.value, engineerName: 'Akmal' } } : {}
       };
+
+      document.getElementById('mcpStatusBadge').innerText = 'Executing...';
       const res = await fetch('/api/mcp', {
         method: 'POST',
         headers: {
@@ -685,6 +702,36 @@ resource "aws_instance" "batch_processor" {
         body: JSON.stringify(payload)
       });
       const data = await res.json();
+      
+      // Update clean human-readable summary
+      const titleEl = document.getElementById('mcpResultTitle');
+      const summaryEl = document.getElementById('mcpResultSummary');
+      const badgeEl = document.getElementById('mcpStatusBadge');
+
+      if (data.error) {
+        badgeEl.innerText = `Error ${data.error.code}`;
+        badgeEl.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300';
+        titleEl.innerText = `${method} failed`;
+        summaryEl.innerText = data.error.message;
+      } else {
+        badgeEl.innerText = 'Protocol OK (2026-07-28)';
+        badgeEl.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300';
+
+        if (method === 'initialize') {
+          titleEl.innerText = `Initialized: ${data.result.serverInfo.name} v${data.result.serverInfo.version}`;
+          summaryEl.innerHTML = `Connected using <strong>MCP ${data.result.protocolVersion}</strong> with capabilities for <strong>tools (${data.result.capabilities?.tools ? 'enabled' : 'none'})</strong>.`;
+        } else if (method === 'tools/list') {
+          const tools = data.result?.tools || [];
+          titleEl.innerText = `Discovered ${tools.length} Registered MCP Tools`;
+          summaryEl.innerHTML = `<ul class="list-disc list-inside space-y-1 mt-1 text-slate-700 dark:text-slate-300">${tools.map(t => `<li><strong>${t.name}</strong>: ${t.description || t.title}</li>`).join('')}</ul>`;
+        } else if (method === 'tools/call') {
+          const struct = data.result?.structuredContent || {};
+          titleEl.innerText = `Executed Tool: ${toolName}`;
+          summaryEl.innerText = struct.spokenBriefing || struct.spokenSummary || (typeof data.result?.content?.[0]?.text === 'string' ? data.result.content[0].text.slice(0, 160) + '...' : 'Execution completed successfully.');
+        }
+      }
+
+      // Populate raw JSON in the accordion
       document.getElementById('mcpRpcOutput').innerText = JSON.stringify({ request: payload, response: data }, null, 2);
     };
 
@@ -713,9 +760,13 @@ resource "aws_instance" "batch_processor" {
 
     function renderAudit(data) {
       const { audit, output, patches, usage, modelId } = data;
-      document.getElementById('metricViolations').innerText = audit.violationsCount;
+      
+      // Meaningful Dashboard Metrics
+      const criticalCount = (audit.findings || []).filter(f => f.severity === 'CRITICAL').length;
+      document.getElementById('metricSecurity').innerText = `${criticalCount} Critical`;
       document.getElementById('metricSavings').innerText = `$${audit.totalMonthlySavingsUSD}`;
-      document.getElementById('metricAnnual').innerText = `$${Math.round(audit.totalMonthlySavingsUSD * 12 * 100) / 100}/yr`;
+      document.getElementById('metricAnnual').innerText = `$${Math.round(audit.totalMonthlySavingsUSD * 12 * 100) / 100}`;
+      document.getElementById('metricScanned').innerText = `${audit.resourcesScanned || 3} Total`;
 
       if (usage && usage.totalTokens > 0) {
         document.getElementById('tokenUsageBadge').innerText = `${usage.totalTokens} tokens processed`;
@@ -740,6 +791,7 @@ resource "aws_instance" "batch_processor" {
           LOW: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-900'
         };
 
+        // Findings with Collapsible Remediation Details
         card.className = 'p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2';
         card.innerHTML = `
           <div class="flex items-center justify-between">
@@ -748,9 +800,10 @@ resource "aws_instance" "batch_processor" {
           </div>
           <h4 class="text-xs font-semibold text-slate-900 dark:text-white">${f.title}</h4>
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">${f.description}</p>
-          <div class="pt-1 flex justify-end">
+          <div class="pt-1 flex items-center justify-between">
+            <span class="text-[10px] font-mono text-slate-400">${f.ruleId}</span>
             <button onclick="viewPatch(${idx})" class="text-xs font-medium px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center space-x-1.5">
-              <span>View Patch</span>
+              <span>View Unified Patch</span>
               <i class="fa-solid fa-chevron-right text-[10px]"></i>
             </button>
           </div>
