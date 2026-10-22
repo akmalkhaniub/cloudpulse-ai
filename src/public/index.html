@@ -151,6 +151,11 @@
           <span id="systemStatusLabel">Connected to AWS Bedrock</span>
         </div>
 
+        <button id="btnAutoDemo" onclick="toggleAutoDemo()" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-semibold shadow-sm transition active:scale-95" title="Run 3-Minute Guided Demo Walkthrough">
+          <i id="autoDemoIcon" class="fa-solid fa-play text-[10px]"></i>
+          <span id="autoDemoLabel">Auto-Play Demo</span>
+        </button>
+
         <button id="themeToggleBtn" onclick="toggleTheme()" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition border border-slate-200 dark:border-slate-700" title="Toggle Theme">
           <i id="themeIcon" class="fa-solid fa-moon text-xs"></i>
         </button>
@@ -892,7 +897,183 @@ resource "aws_instance" "batch_processor" {
       }).catch(() => {});
     };
 
+    // ==========================================
+    // 🎬 AUTO-PLAY DEMO ENGINE & TELEPROMPTER
+    // ==========================================
+    let autoDemoRunning = false;
+    let autoDemoTimer = null;
+    let autoDemoSeconds = 0;
+
+    const DEMO_SCENES = [
+      {
+        start: 0,
+        end: 20,
+        title: "1. The Hook & Problem",
+        script: "Alexa+ already handles calendars and email. We asked: what if Alexa+ could act as a senior cloud architect for your engineering team? Meet CloudPulse AI, backed by Amazon Bedrock Nova Pro.",
+        action: async () => {
+          switchTab('main');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      },
+      {
+        start: 20,
+        end: 45,
+        title: "2. Morning Spoken Briefing",
+        script: "I ask Alexa+ for my morning cloud briefing. Alexa+ audits the Terraform and reports one critical open-SSH rule, an unencrypted database, and $462.53 a month in compute rightsizing savings.",
+        action: async () => {
+          sendAlexaUtterance('Alexa, ask CloudPulse for my morning cloud briefing');
+        }
+      },
+      {
+        start: 45,
+        end: 65,
+        title: "3. Autonomous Patch & PR",
+        script: "When I say 'Alexa, fix all violations and ship a pull request', CloudPulse combines four compliant fixes into one unified Git patch that applies cleanly with git apply, and stages the PR.",
+        action: async () => {
+          sendAlexaUtterance('Alexa, ask CloudPulse to fix all violations and ship a GitHub Pull Request');
+          setTimeout(() => {
+            const diffEl = document.getElementById('diffContainer');
+            if (diffEl) diffEl.scrollIntoView({ behavior: 'smooth' });
+          }, 4000);
+        }
+      },
+      {
+        start: 65,
+        end: 90,
+        title: "4. Unified Diff & Bedrock Loop",
+        script: "The audit runs through a real Amazon Bedrock Converse tool-use loop on Nova Pro. Here is the unified patch with zero false positives, editing attributes in place.",
+        action: async () => {
+          const det = document.querySelectorAll('details');
+          if (det[0]) det[0].open = true;
+          window.viewPatch(0);
+        }
+      },
+      {
+        start: 90,
+        end: 120,
+        title: "5. MCP Protocol Inspector",
+        script: "Here is the MCP server itself: JSON-RPC 2.0 complying with protocol version 2026-07-28, with six registered tools, output schemas, and rich annotations.",
+        action: async () => {
+          switchTab('mcp');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setTimeout(() => {
+            const btnList = document.querySelector("button[onclick*='tools/list']");
+            if (btnList) btnList.click();
+          }, 3000);
+        }
+      },
+      {
+        start: 120,
+        end: 150,
+        title: "6. Standup Sync & Wallboard",
+        script: "Two concept extensions: standup transcript sync checking spoken risks against Terraform, and a 10-foot Fire TV NOC wallboard with D-pad remote navigation.",
+        action: async () => {
+          switchTab('bee');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setTimeout(() => {
+            const syncBtn = document.getElementById('btnSyncTranscript');
+            if (syncBtn) syncBtn.click();
+          }, 3000);
+          setTimeout(() => {
+            switchTab('firetv');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }, 15000);
+        }
+      },
+      {
+        start: 150,
+        end: 165,
+        title: "7. Shape Feedback",
+        script: "We documented concrete product feedback for Alexa+ MCP and Bedrock Converse, plus feature requests for Bee webhooks and Fire TV / Vega OS.",
+        action: async () => {
+          switchTab('shape');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      },
+      {
+        start: 165,
+        end: 175,
+        title: "8. Rigorous Proof & Closing",
+        script: "Everything is backed by 43 automated assertions, including patch-correctness tests, and a 1.000 F1 score on labeled, clean, and adversarial Terraform. Thank you!",
+        action: async () => {
+          switchTab('main');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    ];
+
+    function toggleAutoDemo() {
+      if (autoDemoRunning) {
+        stopAutoDemo();
+      } else {
+        startAutoDemo();
+      }
+    }
+
+    function startAutoDemo() {
+      autoDemoRunning = true;
+      autoDemoSeconds = 0;
+      document.getElementById('autoDemoLabel').innerText = 'Stop Demo';
+      document.getElementById('autoDemoIcon').className = 'fa-solid fa-square text-[10px] text-rose-300';
+      document.getElementById('teleprompterHud').classList.remove('hidden');
+
+      let currentSceneIndex = -1;
+
+      autoDemoTimer = setInterval(() => {
+        autoDemoSeconds++;
+
+        const mins = String(Math.floor(autoDemoSeconds / 60)).padStart(2, '0');
+        const secs = String(autoDemoSeconds % 60).padStart(2, '0');
+        document.getElementById('hudTimer').innerText = `${mins}:${secs} / 02:55`;
+
+        // Check active scene
+        const sceneIdx = DEMO_SCENES.findIndex(s => autoDemoSeconds >= s.start && autoDemoSeconds < s.end);
+        if (sceneIdx !== -1 && sceneIdx !== currentSceneIndex) {
+          currentSceneIndex = sceneIdx;
+          const scene = DEMO_SCENES[sceneIdx];
+          document.getElementById('hudSceneTitle').innerText = scene.title;
+          document.getElementById('hudScriptText').innerText = `"${scene.script}"`;
+          scene.action();
+        }
+
+        if (autoDemoSeconds >= 175) {
+          stopAutoDemo();
+        }
+      }, 1000);
+
+      // Trigger initial scene immediately
+      DEMO_SCENES[0].action();
+      document.getElementById('hudSceneTitle').innerText = DEMO_SCENES[0].title;
+      document.getElementById('hudScriptText').innerText = `"${DEMO_SCENES[0].script}"`;
+    }
+
+    function stopAutoDemo() {
+      autoDemoRunning = false;
+      clearInterval(autoDemoTimer);
+      document.getElementById('autoDemoLabel').innerText = 'Auto-Play Demo';
+      document.getElementById('autoDemoIcon').className = 'fa-solid fa-play text-[10px]';
+      document.getElementById('teleprompterHud').classList.add('hidden');
+    }
+
     document.getElementById('btnRunAudit').click();
   </script>
+
+  <!-- Floating Teleprompter HUD for Demo Recording -->
+  <div id="teleprompterHud" class="fixed bottom-5 right-5 z-50 max-w-md w-full bg-slate-900/95 text-white border-2 border-sky-500 rounded-2xl p-4 shadow-2xl backdrop-blur hidden transition-all">
+    <div class="flex items-center justify-between pb-2 border-b border-slate-700 text-xs">
+      <div class="flex items-center space-x-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+        <span class="font-bold uppercase tracking-wider text-sky-400">Recording Prompter</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span id="hudTimer" class="font-mono font-bold text-amber-400 bg-slate-800 px-2 py-0.5 rounded">00:00 / 02:55</span>
+        <button onclick="stopAutoDemo()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="mt-2.5 space-y-1">
+      <div id="hudSceneTitle" class="text-xs font-bold text-sky-300">1. The Hook</div>
+      <p id="hudScriptText" class="text-xs text-slate-200 leading-relaxed italic bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60 font-sans"></p>
+    </div>
+  </div>
 </body>
 </html>
