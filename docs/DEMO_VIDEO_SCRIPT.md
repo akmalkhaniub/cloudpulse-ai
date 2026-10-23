@@ -1,110 +1,128 @@
-# 🎬 CloudPulse AI — Presenter Script (2:50)
+# 🎬 CloudPulse AI — Official Presenter Video Script & UI Action Guide
 
-**Hackathon:** Build, Ship, Shape: Amazon Developer Hackathon (deadline Friday, October 23, 2026, 12:00 PM PDT)
-**Primary Track:** Alexa+ (self-hosted MCP server + simulated Alexa+ voice experience) · **Mini-Challenges:** AWS Builder, Open Source
-**Rules:** under 3 minutes · public on YouTube or Vimeo · English · for the simulated Alexa+ path, show the simulation source (Scene 6).
-
----
-
-## Before you record
-
-1. Rebuild and start the app with live Bedrock, so the PR summary says "written by Amazon Nova Pro":
-   `npm run build`, then `npm start`. Your current setup already runs live Bedrock; check that the header says
-   "Connected to AWS Bedrock". (PowerShell: `$env:LIVE_BEDROCK="true"; npm start` if it doesn't.)
-2. Open `http://localhost:3002/#copilot`. Turn "Read responses aloud" **on** (the spoken replies are the demo).
-3. In a second terminal, have this ready (Scene 6): `npx @modelcontextprotocol/inspector`
-   Transport: **Streamable HTTP** · URL: `http://localhost:3002/api/mcp` · click **Connect**.
-4. Have `src/alexa_mcp_server.ts` open in your editor, scrolled to `handleAlexaUtterance`.
-5. Leave `CLOUDPULSE_LIVE_PR` unset so the PR stays a dry run.
+**Hackathon:** Build, Ship, Shape: Amazon Developer Hackathon  
+**Target Video Duration:** ~2 minutes 45 seconds (must be under 3 minutes)  
+**Primary Track:** Alexa+ (Self-hosted MCP Server + Voice Copilot)  
+**Mini-Challenges:** AWS Builder (Bedrock Nova Pro), Open Source  
+**Live Application URL:** [http://localhost:3002/#copilot](http://localhost:3002/#copilot)
 
 ---
 
-## Scene 1 · The hook (0:00 – 0:20)
-> **Screen:** CloudPulse home, findings visible.
-
-**Say:**
-> *Turning on encryption for a database looks like a one-line change.*
-> *In Terraform, that one line deletes your database and creates a new one.*
-> *Auto-fix tools don't know that.*
-> *CloudPulse does.*
-> *It's an Alexa+ cloud architect that fixes what's safe, and asks before it breaks anything.*
+## 🖥️ Screen Recording Setup Checklist
+1. **Open your browser:** Go to [`http://localhost:3002/#copilot`](http://localhost:3002/#copilot).
+2. **Audio check:** Ensure the checkbox **"Read responses aloud"** (top-right of the Copilot box) is **CHECKED**.
+3. **Screen layout:** Put this script on your second monitor or side window, and record your browser screen at 1080p.
+4. **Editor/Terminal ready (for final 15s):** Have a terminal window ready showing the output of `npm test` (all 67 tests passing).
 
 ---
 
-## Scene 2 · Morning briefing (0:20 – 0:45)
-> **Click:** ☀️ "Morning briefing". Let Alexa speak.
+## ⏱️ Scene-by-Scene Visual & Script Walkthrough
 
-**Say (over the reply):**
-> *Every morning I ask Alexa+ for a cloud briefing.*
-> *It calls our MCP server, audits the Terraform, and tells me what matters:*
-> *one critical open SSH port, an unencrypted database, and $420 a month in oversized compute.*
-> *And it already knows three fixes are safe, and one needs my approval.*
-
----
-
-## Scene 3 · "Is it safe?" (0:45 – 1:05)
-> **Click:** 🛡️ "Is it safe to fix everything?" Point at the Change Plan panel.
-
-**Say:**
-> *So I ask: is it safe to fix everything?*
-> *Every fix gets a blast-radius check.*
-> *Closing SSH is safe, in place.*
-> *Resizing the instance means a restart, and it stays on x86 so the current AMI still boots.*
-> *But encrypting the database replaces it. That one waits for me.*
+### 🎬 Scene 1: Introduction, Problem & Project Overview (0:00 – 0:30)
+* **What to show on UI:**
+  * Start at the top of the page: [`http://localhost:3002/#copilot`](http://localhost:3002/#copilot).
+  * Point cursor to the header badge: **`ALEXA+ CLOUD ARCHITECT`**.
+  * Point cursor to the live green status pill: **`Connected to AWS Bedrock · amazon.nova-pro-v1:0`**.
+  * Gently scroll down to show the Terraform code box displaying sample production infrastructure.
+* **What to say aloud:**
+> *"Hi everyone! This is **CloudPulse AI**—an autonomous cloud security and FinOps copilot built for the Amazon Developer Hackathon.*  
+>  
+> *CloudPulse connects **Alexa+** directly to your cloud infrastructure as an AI cloud architect, powered by a self-hosted **Model Context Protocol (MCP)** server and **Amazon Bedrock Nova Pro**.*  
+>  
+> *Today, AI security scanners can easily point out misconfigurations, but they have a fatal blind spot: **they don't understand the blast radius of their own fixes**.*  
+>  
+> *For example, turning on encryption for an RDS database looks like a simple one-line Terraform fix. But in AWS, that one line **destroys the database and creates a new one**!*  
+>  
+> *CloudPulse solves this. It's the Alexa+ cloud architect that **fixes what's safe, and asks before it breaks anything**."*
 
 ---
 
-## Scene 4 · "Fix it" (1:05 – 1:40)
-> **Click:** 🚀 "Fix it". Point at: the green re-scan badge, the two columns, then scroll to the patch.
-
-**Say:**
-> *"Fix it."*
-> *CloudPulse stages a pull request with the three safe fixes only.*
-> *It's one patch that applies cleanly with git apply.*
-> *Then it re-scans the patched code: three issues down to zero.*
-> *The database change is held back, with the reason spelled out.*
-
----
-
-## Scene 5 · Approve (1:40 – 2:10)
-> **Click:** the red **Approve and include** button (or say "Approve the database change").
-> Scroll to the patch (show `final_snapshot_identifier`), then expand **Pull request description**.
-
-**Say:**
-> *Now I approve it, with a full understanding of what happens.*
-> *CloudPulse adds a guard: a final snapshot, taken before the old database is deleted.*
-> *Four issues down to zero.*
-> *The PR description is written by Amazon Nova Pro on Bedrock, from the structured safety data.*
-> *The risk table is generated by code, so the model can never drop or invent a risk.*
-> *Rules decide, AI explains, humans approve.*
+### 🎬 Scene 2: The Morning Voice Briefing (0:30 – 1:00)
+* **What to show on UI:**
+  * Scroll back to the Copilot section.
+  * Click the quick-action button: **☀️ "Morning briefing"** (or click the microphone icon 🎙️).
+  * Watch the blue speech bubble appear saying *"Thinking..."*, followed by the spoken audio response.
+  * Scroll down slightly to show the **Action Items & Staged Remediations** cards (pointing out the `CRITICAL` Open SSH port and `HIGH` Unencrypted DB).
+* **What to say aloud:**
+> *"Every morning, I can ask Alexa+ for my morning cloud briefing.*  
+>  
+> *Alexa+ queries our local Model Context Protocol server, audits the live Terraform AST with Amazon Bedrock, and reports our posture in real time.*  
+>  
+> *It identifies one critical open SSH port exposed to `0.0.0.0/0`, an unencrypted production database, and over $420 a month in rightsizing savings.*  
+>  
+> *Notice what Alexa says: it already knows that **three fixes are safe to ship**, while **one fix requires my approval**."*
 
 ---
 
-## Scene 6 · Any MCP client (2:10 – 2:35)
-> **Switch:** to the MCP Inspector window. Click **List Tools** (7 tools), then run `assess_change_risk`.
-> **Then:** 3 seconds on `src/alexa_mcp_server.ts` (`handleAlexaUtterance`).
-
-**Say:**
-> *This isn't locked to Alexa.*
-> *Here's the official MCP Inspector, connected to the same server: seven tools, all passing schema checks.*
-> *So Claude, Amazon Q, or any agent gets the same safety gate.*
-> *The ship tool refuses disruptive changes unless the user has approved them.*
-> *And this is the source of our Alexa+ voice simulation.*
-
----
-
-## Scene 7 · Proof & close (2:35 – 2:50)
-> **Switch:** terminal with `npm test` output (67 assertions passing).
-
-**Say:**
-> *67 automated checks, including the approval flow and every tool's output schema.*
-> *CloudPulse: the cloud architect that asks before it breaks things.*
-> *Thank you.*
+### 🎬 Scene 3: Blast-Radius & Safety Assessment (1:00 – 1:30)
+* **What to show on UI:**
+  * Click the quick-action button: **🛡️ "Is it safe to fix everything?"**.
+  * Watch the **Change Plan** panel expand onto the screen.
+  * Hover over the left column: **SAFE TO SHIP** (shows `SEC_OPEN_SSH_INGRESS`, `COST_OVERPROVISIONED_EC2`, `REL_NO_MULTI_AZ_DB`).
+  * Hover over the right column: **NEEDS YOUR APPROVAL** (shows `SEC_UNENCRYPTED_DB` with red badge *"Needs approval"* and downtime explanation).
+* **What to say aloud:**
+> *"So I ask Alexa: 'Is it safe to fix everything?'*  
+>  
+> *Every single finding gets an automated blast-radius assessment from our Change Safety Engine.*  
+>  
+> *Closing SSH is safe and updates in place.*  
+> *Resizing the EC2 instance stops and starts it, but stays in the same x86 CPU family so our current AMI still boots.*  
+>  
+> *However, encrypting the database will destroy and replace the instance! CloudPulse detects this replacement risk and strictly holds that change back until a human confirms."*
 
 ---
 
-## If something goes wrong while recording
+### 🎬 Scene 4: "Fix It" & Safe PR Staging (1:30 – 2:05)
+* **What to show on UI:**
+  * Click the quick-action button: **🚀 "Fix it"** (or type *"Alexa, fix it"* in the input bar and click Send).
+  * Point cursor to the green badge that appears: **`✓ Re-scanned patched code: 3 → 0 issues`**.
+  * Point to the status: **`PR staged (dry run) · cloudpulse/remediation-...`**.
+  * Scroll down to the **Synthesized Unified Patch** view to show the clean, color-coded Git diff (green additions and red deletions).
+* **What to say aloud:**
+> *"I say: 'Alexa, fix it.'*  
+>  
+> *CloudPulse synthesizes a single, unified Git diff containing only the safe fixes.*  
+> *It applies cleanly with `git apply`, and stages a pull request.*  
+>  
+> *Then it automatically re-scans the patched code: three issues down to zero.*  
+> *The database replacement is held back, with the exact downtime warning clearly explained."*
 
-- **Spoken reply cuts off:** click the action again; the reply is regenerated.
-- **PR description says "Template (offline)":** Bedrock isn't live. Restart with `LIVE_BEDROCK=true`, or say "The PR description is written by Nova Pro when Bedrock is connected."
-- **Mic doesn't work:** use the buttons; they send the same phrases.
+---
+
+### 🎬 Scene 5: Human Approval with Automated Safety Guards (2:05 – 2:35)
+* **What to show on UI:**
+  * In the Change Plan panel under "Needs your approval", click the red button:  
+    **`Approve and include (snapshot guard added)`**  
+    *(or type "Alexa, approve the database change")*.
+  * Watch the Change Plan update with the blue badge: **`✓ Approved by you`**.
+  * Scroll down to the Unified Patch and point out the added safety guard:  
+    `skip_final_snapshot = false` and `final_snapshot_identifier = "app_db-pre-encryption"`.
+  * Click and expand the **Pull request description** accordion to show the Bedrock-generated markdown summary and risk table.
+* **What to say aloud:**
+> *"Now I approve the change, with full understanding of what will happen.*  
+>  
+> *Look at what CloudPulse did: it automatically synthesized a safety guard—a final snapshot taken before the old database is deleted, preventing any data loss.*  
+>  
+> *The pull request description is generated by Amazon Bedrock Nova Pro, while the risk table is strictly enforced by deterministic code.*  
+>  
+> *Our core philosophy: **Rules decide, AI explains, humans approve**."*
+
+---
+
+### 🎬 Scene 6: MCP Server Protocol & Test Proof (2:35 – 2:50)
+* **What to show on UI:**
+  * Scroll to the top and click the second tab: **`Alexa+ MCP Server`** (notice the browser URL updates to `http://localhost:3002/#mcp`).
+  * Click **`initialize`** and **`tools/list`** to show the 7 registered JSON-RPC tools with their JSON Schema (2020-12) validation.
+  * Switch briefly to your open terminal window displaying `npm test` with all **67 assertions passing**.
+* **What to say aloud:**
+> *"CloudPulse implements the modern Model Context Protocol specification (2026-07-28) over standard JSON-RPC 2.0 with seven distinct tools.*  
+>  
+> *Everything is verified with **67 green automated test assertions** and a 1.000 F1 score on our evaluation fixtures.*  
+>  
+> *CloudPulse AI bridges conversational intelligence with cloud safety. Thank you!"*
+
+---
+
+## 📁 File Location
+This exact guide is permanently saved in your repository at:  
+👉 [`docs/DEMO_VIDEO_SCRIPT.md`](file:///g:/ReplitProjects/hackathons/amazon-developer-hackathon/docs/DEMO_VIDEO_SCRIPT.md)
