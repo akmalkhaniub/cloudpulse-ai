@@ -44,6 +44,7 @@
   "author": "Akmal Khan",
   "license": "MIT",
   "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@types/node": "^22.20.3",
     "c8": "^10.1.3",
     "tsx": "^4.23.13",

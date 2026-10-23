@@ -126,20 +126,13 @@
         </div>
 
         <nav class="hidden md:flex items-center space-x-1 p-1 bg-slate-100 dark:bg-slate-800/60 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
-          <button id="tabMainBtn" onclick="switchTab('main')" class="px-3 py-1.5 rounded-md font-semibold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition">
-            Infrastructure Copilot
+          <button id="tabMainBtn" onclick="switchTab('copilot')" class="px-3.5 py-1.5 rounded-md font-semibold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition">
+            <i class="fa-solid fa-microphone-lines mr-1.5 text-sky-500"></i>
+            <span>Alexa+ Cloud Architect</span>
           </button>
-          <button id="tabBeeBtn" onclick="switchTab('bee')" class="px-3 py-1.5 rounded-md hover:text-slate-900 dark:hover:text-white transition">
-            Standup Sync
-          </button>
-          <button id="tabFiretvBtn" onclick="switchTab('firetv')" class="px-3 py-1.5 rounded-md hover:text-slate-900 dark:hover:text-white transition">
-            NOC Wallboard
-          </button>
-          <button id="tabMcpBtn" onclick="switchTab('mcp')" class="px-3 py-1.5 rounded-md hover:text-slate-900 dark:hover:text-white transition">
-            MCP Protocol
-          </button>
-          <button id="tabShapeBtn" onclick="switchTab('shape')" class="px-3 py-1.5 rounded-md hover:text-slate-900 dark:hover:text-white transition">
-            Architecture Feedback
+          <button id="tabMcpBtn" onclick="switchTab('mcp')" class="px-3.5 py-1.5 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">
+            <i class="fa-solid fa-network-wired mr-1.5 text-indigo-400"></i>
+            <span>Alexa+ MCP Server</span>
           </button>
         </nav>
       </div>
@@ -151,11 +144,6 @@
           <span id="systemStatusLabel">Connected to AWS Bedrock</span>
         </div>
 
-        <button id="btnAutoDemo" onclick="toggleAutoDemo()" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-semibold shadow-sm transition active:scale-95" title="Run 3-Minute Guided Demo Walkthrough">
-          <i id="autoDemoIcon" class="fa-solid fa-play text-[10px]"></i>
-          <span id="autoDemoLabel">Auto-Play Demo</span>
-        </button>
-
         <button id="themeToggleBtn" onclick="toggleTheme()" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition border border-slate-200 dark:border-slate-700" title="Toggle Theme">
           <i id="themeIcon" class="fa-solid fa-moon text-xs"></i>
         </button>
@@ -166,11 +154,8 @@
   <!-- Mobile Navigation -->
   <div class="md:hidden max-w-6xl mx-auto px-4 pt-3">
     <div class="flex overflow-x-auto py-1 gap-1 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
-      <button onclick="switchTab('main')" class="px-3 py-1.5 whitespace-nowrap rounded-md bg-slate-200 dark:bg-slate-800">Copilot</button>
-      <button onclick="switchTab('bee')" class="px-3 py-1.5 whitespace-nowrap rounded-md text-slate-600 dark:text-slate-400">Standup Sync</button>
-      <button onclick="switchTab('firetv')" class="px-3 py-1.5 whitespace-nowrap rounded-md text-slate-600 dark:text-slate-400">Wallboard</button>
-      <button onclick="switchTab('mcp')" class="px-3 py-1.5 whitespace-nowrap rounded-md text-slate-600 dark:text-slate-400">MCP</button>
-      <button onclick="switchTab('shape')" class="px-3 py-1.5 whitespace-nowrap rounded-md text-slate-600 dark:text-slate-400">Feedback</button>
+      <button onclick="switchTab('copilot')" class="px-3 py-1.5 whitespace-nowrap rounded-md bg-slate-200 dark:bg-slate-800">Alexa+ Copilot</button>
+      <button onclick="switchTab('mcp')" class="px-3 py-1.5 whitespace-nowrap rounded-md text-slate-600 dark:text-slate-400">MCP Server</button>
     </div>
   </div>
 
@@ -208,18 +193,19 @@
 
       <!-- Quick Action Buttons -->
       <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
-        <span class="text-slate-400 dark:text-slate-500 text-[11px] font-medium mr-1">Quick Actions:</span>
-        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse for my morning cloud briefing')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
-          ☀️ Morning Briefing
+        <span class="text-slate-400 dark:text-slate-500 text-[11px] font-medium mr-1">Voice Directives:</span>
+        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse for my morning cloud briefing')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition flex items-center space-x-1.5">
+          <span>☀️ Morning Cloud Briefing</span>
         </button>
-        <button onclick="sendAlexaUtterance('Alexa, sync my Amazon Bee wearable standup recording and verify in Terraform')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
-          🐝 Sync Standup Audio
+        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to fix all violations and ship a GitHub Pull Request')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition flex items-center space-x-1.5">
+          <span>🚀 Synthesize & Ship PR</span>
         </button>
-        <button onclick="sendAlexaUtterance('Alexa, ask CloudPulse to fix all violations and ship a GitHub Pull Request')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
-          🚀 Synthesize & Create PR
+        <button onclick="sendAlexaUtterance('Alexa, audit our Terraform infrastructure with Amazon Bedrock')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition flex items-center space-x-1.5">
+          <span>🔍 Bedrock Audit</span>
         </button>
-        <button onclick="sendAlexaUtterance('Alexa, launch Fire TV war room wallboard')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
-          📺 Open Wallboard Mode
+        <button onclick="switchTab('mcp')" class="px-2.5 py-1 rounded-md bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 font-medium transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-network-wired text-[10px]"></i>
+          <span>Inspect MCP Server</span>
         </button>
       </div>
 
@@ -316,79 +302,21 @@
     </div>
   </main>
 
-  <!-- TAB 2: Standup Sync (Amazon Bee Wearable) -->
-  <section id="tabBee" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 hidden space-y-6">
-    <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <span class="text-[11px] font-medium text-amber-600 dark:text-amber-400">Concept · Bee-style standup transcript (sample data, no live device)</span>
-          <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Standup Transcript → Verified Infrastructure Patches</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Captures spoken engineering concerns from morning standups, maps them to AWS Well-Architected rules, and verifies them against the active Terraform AST.</p>
-        </div>
-        <button onclick="runBeeIngest()" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition shadow-sm shrink-0">
-          Sync Standup Audio
-        </button>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-5 space-y-2">
-          <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Standup Audio Transcript</label>
-          <textarea id="beeTranscriptInput" rows="10" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-3 font-mono text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500">[09:14:02] Sarah (SRE Lead): Morning team. Before Friday's cutover, I noticed our web security group still has port 22 SSH open to 0.0.0.0/0.
-[09:14:19] Alex (Platform Eng): Good catch. Also, app_db Postgres in staging is running without storage encryption or Multi-AZ failover.
-[09:14:41] Priya (FinOps): And please check batch_processor — it's sitting on an m5.4xlarge burning budget when a Graviton m7g.xlarge would cut costs by over $270 a month.</textarea>
-        </div>
-        <div class="lg:col-span-7 space-y-3">
-          <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Extracted Spoken Concerns & Code Verification</label>
-          <div id="beeActionItemsContainer" class="space-y-2.5">
-            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-500">
-              Click "Sync Standup Audio" to parse spoken notes and verify against your manifest.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TAB 3: NOC Wallboard (Amazon Fire TV) -->
-  <section id="tabFiretv" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 hidden space-y-6">
-    <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-        <div>
-          <span class="text-[11px] font-medium text-purple-600 dark:text-purple-400">10-Foot Wall Display Interface</span>
-          <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Engineering War-Room Posture Board</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Concept · browser prototype of a Fire TV-style wall display. Navigate tiles using keyboard arrows (<kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">◀</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">▶</kbd>) and <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border text-slate-700 dark:text-slate-300 font-mono text-[10px]">Enter</kbd>.</p>
-        </div>
-        <div class="flex gap-2">
-          <button onclick="moveTvFocus(-1)" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium border border-slate-200 dark:border-slate-700">◀ D-Pad Left</button>
-          <button onclick="moveTvFocus(1)" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-medium border border-slate-200 dark:border-slate-700">D-Pad Right ▶</button>
-          <button onclick="selectTvTile()" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium shadow-sm">⏎ Select</button>
-        </div>
-      </div>
-
-      <div id="fireTvTilesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
-
-      <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-        <div class="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">Remediation Patch Preview:</div>
-        <pre id="fireTvPatchPreview" class="p-3.5 rounded-lg bg-slate-900 text-emerald-400 font-mono text-xs overflow-x-auto shadow-inner">Use arrow keys or select a tile above to preview its patch.</pre>
-      </div>
-    </div>
-  </section>
-
-  <!-- TAB 4: MCP Protocol Inspector -->
+  <!-- TAB 2: MCP Protocol Inspector (Alexa+ Stateless JSON-RPC 2.0 Server) -->
   <section id="tabMcp" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 hidden space-y-4">
     <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span class="text-[11px] font-medium text-sky-600 dark:text-sky-400">JSON-RPC 2.0 Endpoint (`/api/mcp`)</span>
-          <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Model Context Protocol (MCP 2026-07-28)</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Stateless per-request protocol versioning, structured output schemas, and registered tool executions.</p>
+          <span class="text-[11px] font-medium text-sky-600 dark:text-sky-400">Alexa+ JSON-RPC 2.0 Endpoint (`/api/mcp`)</span>
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Model Context Protocol Server (MCP 2026-07-28)</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Stateless per-request protocol versioning, structured JSON Schema 2020-12 output schemas, and registered Alexa+ agent tools.</p>
         </div>
         <div class="flex flex-wrap gap-2 text-xs">
           <button onclick="runMcpRpc('initialize')" class="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">initialize</button>
           <button onclick="runMcpRpc('tools/list')" class="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">tools/list</button>
           <button onclick="runMcpRpc('tools/call', 'get_morning_cloud_briefing')" class="px-3 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 font-medium text-white shadow-sm">tools/call (briefing)</button>
-          <button onclick="runMcpRpc('tools/call', 'ingest_bee_meeting_transcript')" class="px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-500 font-medium text-white shadow-sm">tools/call (bee_sync)</button>
-          <button onclick="runMcpRpc('tools/call', 'get_firetv_wallboard_state')" class="px-3 py-1.5 rounded-md bg-purple-600 hover:bg-purple-500 font-medium text-white shadow-sm">tools/call (wallboard)</button>
+          <button onclick="runMcpRpc('tools/call', 'audit_iac_manifest')" class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 font-medium text-white shadow-sm">tools/call (audit)</button>
+          <button onclick="runMcpRpc('tools/call', 'synthesize_remediation_diff')" class="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 font-medium text-white shadow-sm">tools/call (diff)</button>
         </div>
       </div>
 
@@ -402,7 +330,7 @@
         </div>
       </div>
 
-      <details class="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+      <details class="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden" open>
         <summary class="flex items-center justify-between px-4 py-2.5 cursor-pointer bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/50 dark:hover:bg-slate-800/60 text-xs font-medium text-slate-700 dark:text-slate-300 select-none">
           <span class="flex items-center space-x-2">
             <i class="fa-solid fa-code text-[11px] text-slate-400"></i>
@@ -414,63 +342,6 @@
           <pre id="mcpRpcOutput" class="text-emerald-400 font-mono text-xs overflow-x-auto max-h-72 leading-relaxed">No request executed yet.</pre>
         </div>
       </details>
-    </div>
-  </section>
-
-  <!-- TAB 5: Architecture Feedback ("Shape" Deliverable) -->
-  <section id="tabShape" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 hidden space-y-4">
-    <div class="p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
-      <div>
-        <span class="text-[11px] font-medium text-indigo-600 dark:text-indigo-400">Developer Experience Feedback</span>
-        <h2 class="text-base font-semibold text-slate-900 dark:text-white mt-1">Recommendations for Amazon Product & Platform Teams</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Friction points and architectural opportunities identified while building across Alexa+ MCP, Bedrock Converse, Bee Wearable, and Fire TV.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-          <div class="text-xs font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
-            <span class="w-5 h-5 rounded bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400 flex items-center justify-center text-[10px]">1</span>
-            <span>Alexa+ MCP & Bedrock Converse Schema Alignment</span>
-          </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            <strong>Friction:</strong> Mapping MCP JSON Schema 2020-12 descriptors into Bedrock Converse <code class="font-mono text-[11px]">toolSpec.inputSchema.json</code> requires custom runtime adapters.<br>
-            <strong>Recommendation:</strong> Ship an official <code class="font-mono text-[11px]">@amazon-alexa/mcp-bedrock-bridge</code> library to serialize MCP tools directly into Converse parameters.
-          </p>
-        </div>
-
-        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-          <div class="text-xs font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
-            <span class="w-5 h-5 rounded bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px]">2</span>
-            <span>Bedrock Tool-Use Model Introspection</span>
-          </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            <strong>Friction:</strong> Foundation models fail differently if the caller's IAM principal lacks tool-use entitlements in a specific region.<br>
-            <strong>Recommendation:</strong> Add a <code class="font-mono text-[11px]">listConverseReadyModels()</code> API filter in the Bedrock SDK to discover callable tool-use models cleanly.
-          </p>
-        </div>
-
-        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-          <div class="text-xs font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
-            <span class="w-5 h-5 rounded bg-yellow-100 dark:bg-yellow-950 text-yellow-600 dark:text-yellow-400 flex items-center justify-center text-[10px]">3</span>
-            <span>Bee Wearable Structured Webhook Dispatches</span>
-          </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            <strong>Feature request (concept, not built on Bee):</strong> Diarized meeting transcripts arrive without infrastructure entity tagging.<br>
-            <strong>Recommendation:</strong> Allow Bee apps to register domain entity extractors that emit signed JSON-RPC events directly to self-hosted MCP endpoints.
-          </p>
-        </div>
-
-        <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-          <div class="text-xs font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
-            <span class="w-5 h-5 rounded bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px]">4</span>
-            <span>Fire TV Web App Spatial Navigation Standard</span>
-          </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            <strong>Feature request (concept, not built on Fire TV):</strong> Our browser prototype needed custom key-down spatial focus handlers.<br>
-            <strong>Recommendation:</strong> Release an official web spatial navigation polyfill for Fire TV / Vega OS browsers.
-          </p>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -573,26 +444,38 @@ resource "aws_instance" "batch_processor" {
       }
     }).catch(() => {});
 
-    window.switchTab = function(tab) {
-      ['main', 'bee', 'firetv', 'mcp', 'shape'].forEach(t => {
-        const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
-        const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
-        if (t === tab) {
-          el.classList.remove('hidden');
-          if (btn) {
-            btn.className = 'px-3 py-1.5 rounded-md font-semibold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition';
-          }
-        } else {
-          el.classList.add('hidden');
-          if (btn) {
-            btn.className = 'px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition';
-          }
-        }
-      });
-      if (tab === 'mcp') runMcpRpc('tools/list');
-      if (tab === 'bee') runBeeIngest();
-      if (tab === 'firetv') loadFireTvWallboard();
+    window.switchTab = function(tab, updateHash = true) {
+      if (tab === 'main' || tab === 'copilot') tab = 'copilot';
+      if (tab !== 'copilot' && tab !== 'mcp') tab = 'copilot';
+
+      const isCopilot = tab === 'copilot';
+      const mainEl = document.getElementById('tabMain');
+      const mcpEl = document.getElementById('tabMcp');
+      const mainBtn = document.getElementById('tabMainBtn');
+      const mcpBtn = document.getElementById('tabMcpBtn');
+
+      if (isCopilot) {
+        if (mainEl) mainEl.classList.remove('hidden');
+        if (mcpEl) mcpEl.classList.add('hidden');
+        if (mainBtn) mainBtn.className = 'px-3.5 py-1.5 rounded-md font-semibold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition';
+        if (mcpBtn) mcpBtn.className = 'px-3.5 py-1.5 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition';
+      } else {
+        if (mainEl) mainEl.classList.add('hidden');
+        if (mcpEl) mcpEl.classList.remove('hidden');
+        if (mcpBtn) mcpBtn.className = 'px-3.5 py-1.5 rounded-md font-semibold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition';
+        if (mainBtn) mainBtn.className = 'px-3.5 py-1.5 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition';
+        runMcpRpc('tools/list');
+      }
+
+      if (updateHash && window.location.hash !== '#' + tab) {
+        history.pushState(null, '', '#' + tab);
+      }
     };
+
+    window.addEventListener('hashchange', () => {
+      const h = window.location.hash.replace('#', '') || 'copilot';
+      window.switchTab(h, false);
+    });
 
     window.startLiveMicInput = function() {
       const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -897,183 +780,11 @@ resource "aws_instance" "batch_processor" {
       }).catch(() => {});
     };
 
-    // ==========================================
-    // 🎬 AUTO-PLAY DEMO ENGINE & TELEPROMPTER
-    // ==========================================
-    let autoDemoRunning = false;
-    let autoDemoTimer = null;
-    let autoDemoSeconds = 0;
-
-    const DEMO_SCENES = [
-      {
-        start: 0,
-        end: 20,
-        title: "1. The Hook & Problem",
-        script: "Alexa+ already handles calendars and email. We asked: what if Alexa+ could act as a senior cloud architect for your engineering team? Meet CloudPulse AI, backed by Amazon Bedrock Nova Pro.",
-        action: async () => {
-          switchTab('main');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      },
-      {
-        start: 20,
-        end: 45,
-        title: "2. Morning Spoken Briefing",
-        script: "I ask Alexa+ for my morning cloud briefing. Alexa+ audits the Terraform and reports one critical open-SSH rule, an unencrypted database, and $462.53 a month in compute rightsizing savings.",
-        action: async () => {
-          sendAlexaUtterance('Alexa, ask CloudPulse for my morning cloud briefing');
-        }
-      },
-      {
-        start: 45,
-        end: 65,
-        title: "3. Autonomous Patch & PR",
-        script: "When I say 'Alexa, fix all violations and ship a pull request', CloudPulse combines four compliant fixes into one unified Git patch that applies cleanly with git apply, and stages the PR.",
-        action: async () => {
-          sendAlexaUtterance('Alexa, ask CloudPulse to fix all violations and ship a GitHub Pull Request');
-          setTimeout(() => {
-            const diffEl = document.getElementById('diffContainer');
-            if (diffEl) diffEl.scrollIntoView({ behavior: 'smooth' });
-          }, 4000);
-        }
-      },
-      {
-        start: 65,
-        end: 90,
-        title: "4. Unified Diff & Bedrock Loop",
-        script: "The audit runs through a real Amazon Bedrock Converse tool-use loop on Nova Pro. Here is the unified patch with zero false positives, editing attributes in place.",
-        action: async () => {
-          const det = document.querySelectorAll('details');
-          if (det[0]) det[0].open = true;
-          window.viewPatch(0);
-        }
-      },
-      {
-        start: 90,
-        end: 120,
-        title: "5. MCP Protocol Inspector",
-        script: "Here is the MCP server itself: JSON-RPC 2.0 complying with protocol version 2026-07-28, with six registered tools, output schemas, and rich annotations.",
-        action: async () => {
-          switchTab('mcp');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          setTimeout(() => {
-            const btnList = document.querySelector("button[onclick*='tools/list']");
-            if (btnList) btnList.click();
-          }, 3000);
-        }
-      },
-      {
-        start: 120,
-        end: 150,
-        title: "6. Standup Sync & Wallboard",
-        script: "Two concept extensions: standup transcript sync checking spoken risks against Terraform, and a 10-foot Fire TV NOC wallboard with D-pad remote navigation.",
-        action: async () => {
-          switchTab('bee');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          setTimeout(() => {
-            const syncBtn = document.getElementById('btnSyncTranscript');
-            if (syncBtn) syncBtn.click();
-          }, 3000);
-          setTimeout(() => {
-            switchTab('firetv');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }, 15000);
-        }
-      },
-      {
-        start: 150,
-        end: 165,
-        title: "7. Shape Feedback",
-        script: "We documented concrete product feedback for Alexa+ MCP and Bedrock Converse, plus feature requests for Bee webhooks and Fire TV / Vega OS.",
-        action: async () => {
-          switchTab('shape');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      },
-      {
-        start: 165,
-        end: 175,
-        title: "8. Rigorous Proof & Closing",
-        script: "Everything is backed by 43 automated assertions, including patch-correctness tests, and a 1.000 F1 score on labeled, clean, and adversarial Terraform. Thank you!",
-        action: async () => {
-          switchTab('main');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      }
-    ];
-
-    function toggleAutoDemo() {
-      if (autoDemoRunning) {
-        stopAutoDemo();
-      } else {
-        startAutoDemo();
-      }
-    }
-
-    function startAutoDemo() {
-      autoDemoRunning = true;
-      autoDemoSeconds = 0;
-      document.getElementById('autoDemoLabel').innerText = 'Stop Demo';
-      document.getElementById('autoDemoIcon').className = 'fa-solid fa-square text-[10px] text-rose-300';
-      document.getElementById('teleprompterHud').classList.remove('hidden');
-
-      let currentSceneIndex = -1;
-
-      autoDemoTimer = setInterval(() => {
-        autoDemoSeconds++;
-
-        const mins = String(Math.floor(autoDemoSeconds / 60)).padStart(2, '0');
-        const secs = String(autoDemoSeconds % 60).padStart(2, '0');
-        document.getElementById('hudTimer').innerText = `${mins}:${secs} / 02:55`;
-
-        // Check active scene
-        const sceneIdx = DEMO_SCENES.findIndex(s => autoDemoSeconds >= s.start && autoDemoSeconds < s.end);
-        if (sceneIdx !== -1 && sceneIdx !== currentSceneIndex) {
-          currentSceneIndex = sceneIdx;
-          const scene = DEMO_SCENES[sceneIdx];
-          document.getElementById('hudSceneTitle').innerText = scene.title;
-          document.getElementById('hudScriptText').innerText = `"${scene.script}"`;
-          scene.action();
-        }
-
-        if (autoDemoSeconds >= 175) {
-          stopAutoDemo();
-        }
-      }, 1000);
-
-      // Trigger initial scene immediately
-      DEMO_SCENES[0].action();
-      document.getElementById('hudSceneTitle').innerText = DEMO_SCENES[0].title;
-      document.getElementById('hudScriptText').innerText = `"${DEMO_SCENES[0].script}"`;
-    }
-
-    function stopAutoDemo() {
-      autoDemoRunning = false;
-      clearInterval(autoDemoTimer);
-      document.getElementById('autoDemoLabel').innerText = 'Auto-Play Demo';
-      document.getElementById('autoDemoIcon').className = 'fa-solid fa-play text-[10px]';
-      document.getElementById('teleprompterHud').classList.add('hidden');
-    }
+    // Initialize active tab from URL hash
+    const initialTab = window.location.hash.replace('#', '') || 'copilot';
+    window.switchTab(initialTab, false);
 
     document.getElementById('btnRunAudit').click();
   </script>
-
-  <!-- Floating Teleprompter HUD for Demo Recording -->
-  <div id="teleprompterHud" class="fixed bottom-5 right-5 z-50 max-w-md w-full bg-slate-900/95 text-white border-2 border-sky-500 rounded-2xl p-4 shadow-2xl backdrop-blur hidden transition-all">
-    <div class="flex items-center justify-between pb-2 border-b border-slate-700 text-xs">
-      <div class="flex items-center space-x-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
-        <span class="font-bold uppercase tracking-wider text-sky-400">Recording Prompter</span>
-      </div>
-      <div class="flex items-center space-x-2">
-        <span id="hudTimer" class="font-mono font-bold text-amber-400 bg-slate-800 px-2 py-0.5 rounded">00:00 / 02:55</span>
-        <button onclick="stopAutoDemo()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-    </div>
-    <div class="mt-2.5 space-y-1">
-      <div id="hudSceneTitle" class="text-xs font-bold text-sky-300">1. The Hook</div>
-      <p id="hudScriptText" class="text-xs text-slate-200 leading-relaxed italic bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60 font-sans"></p>
-    </div>
-  </div>
 </body>
 </html>
