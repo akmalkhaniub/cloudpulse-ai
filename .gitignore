@@ -1,23 +1,19 @@
 node_modules/
-.env
-*.log
-.DS_Store
 dist/
 build/
 coverage/
+.nyc_output/
+*.tsbuildinfo
+*.log
+.DS_Store
+
+# Secrets
+.env
+
+# Terraform state
 .terraform/
 *.tfstate*
 
-*.tsbuildinfo
-
-*.tsbuildinfo
-
-coverage/
-.nyc_output/
+# Local video-production tools and audio (not part of the project)
+.video-tools/
 temp_audio/
-
-
-coverage/
-.nyc_output/
-temp_audio/
-

@@ -5,7 +5,7 @@
 [![Alexa+: MCP Server](https://img.shields.io/badge/Alexa%2B-MCP%20Server%20%287%20Tools%29-00CAFF.svg)](./src/alexa_mcp_server.ts)
 [![MCP Inspector: verified](https://img.shields.io/badge/MCP%20Inspector-7%2F7%20tools%20pass-22c55e.svg)](#-verification)
 [![Amazon Bedrock: Nova Pro](https://img.shields.io/badge/Amazon%20Bedrock-Nova%20Pro%20Converse-orange.svg)](./src/bedrock_converse_agent.ts)
-[![Tests: 62 assertions](https://img.shields.io/badge/Tests-62%20assertions-emerald.svg)](./test)
+[![Tests: 67 assertions](https://img.shields.io/badge/Tests-67%20assertions-emerald.svg)](./test)
 
 > **Built for [Build, Ship, Shape: Amazon Developer Hackathon](https://amazonappdev2026.devpost.com/)**
 > **Primary Track:** Alexa+ (self-hosted MCP server + simulated Alexa+ voice experience in a web app)
@@ -152,7 +152,7 @@ flowchart TD
 | Patches | **Real**: one diff that applies with `git apply`; re-auditing the patched sample leaves 0 findings |
 | Amazon Bedrock Converse (`amazon.nova-pro-v1:0`) | **Real** with AWS credentials (audit narrative + PR summary); deterministic template/simulator otherwise |
 | Alexa+ voice front end (`/api/alexa`, browser speech in/out) | **Simulated** Alexa+ experience in a web app, as allowed by the Alexa+ track |
-| GitHub PR | **Dry run** without `GITHUB_TOKEN`. Live mode opens a PR from an existing `cloudpulse/remediation` branch |
+| GitHub PR | **Dry run** by default. Live only with `CLOUDPULSE_LIVE_PR=true` and `GITHUB_TOKEN`, and it opens a PR from an existing `cloudpulse/remediation` branch |
 | Standup sync, 10-foot display | **Concepts**: sample transcript; browser UI. Not Bee or Fire TV integrations |
 
 ---
@@ -160,7 +160,7 @@ flowchart TD
 ## 🧪 Verification
 
 ```bash
-npm test          # 62 assertions across 6 suites
+npm test          # 67 assertions across 6 suites
 npm run eval      # detection precision / recall / F1 on labeled, clean and adversarial fixtures
 npm run mcp:inspect   # official MCP Inspector CLI → tools/list against the running server
 ```
@@ -171,8 +171,8 @@ npm run mcp:inspect   # official MCP Inspector CLI → tools/list against the ru
 | `parser.test.ts` | 4 | HCL parsing edge cases |
 | `eval.test.ts` | 6 | F1 = 1.000 on our fixtures, zero false positives on adversarial-clean config |
 | `remediation.test.ts` | 7 | In-place edits, one combined diff, zero findings after re-audit |
-| `safety.test.ts` | 15 | Risk levels, snapshot guard, same-arch rightsizing, VPC-CIDR inference, PR risk table, strict approval gating |
-| `server_integration.ts` | 22 | HTTP + MCP + voice approval flow; every tool output matches its `outputSchema` |
+| `safety.test.ts` | 16 | Risk levels, snapshot guard, same-arch rightsizing, VPC-CIDR inference, PR risk table, strict approval gating |
+| `server_integration.ts` | 26 | HTTP + MCP + voice approval flow; every tool output matches its `outputSchema`; `ping`; empty and invalid input |
 
 Detection is measured on fixtures we wrote, so F1 = 1.000 shows the rules work as designed, not coverage of real-world infrastructure.
 
@@ -200,6 +200,8 @@ npx @modelcontextprotocol/inspector   # GUI: transport "Streamable HTTP", URL ht
 - **Blast radius from a real plan:** today the safety rules encode documented AWS behavior. Next: confirm against `terraform plan` (which reports replacements directly).
 - **Rightsizing** uses instance size only. Next: CloudWatch / Compute Optimizer utilization.
 - **Alexa+:** simulated in the browser. Next: connect the same MCP server to a real Alexa+ Agent Skill.
+- **Voice approval state** is kept in memory per server instance (fine for a single-user demo). Next: tie approvals to an authenticated user and expire them.
+- **Live Bedrock** is used automatically when AWS credentials are present; set `MOCK_BEDROCK=true` to force the offline simulator.
 
 ---
 
@@ -213,10 +215,10 @@ src/
 ├── remediation_synthesizer.ts # Block-scoped fixes, safety guards, LCS unified diff
 ├── well_architected_engine.ts # Rules + us-east-1 price table + same-family rightsizing
 ├── iac_parser.ts              # Terraform HCL / JSON parser
-├── github_pr.ts               # GitHub PR (dry run without GITHUB_TOKEN)
+├── github_pr.ts               # GitHub PR (dry run unless CLOUDPULSE_LIVE_PR=true)
 ├── server.ts                  # HTTP server: /api/mcp, /api/alexa, /api/audit
 └── public/index.html          # Web console: voice, change plan, approvals, MCP inspector
-test/                          # 6 suites, 62 assertions
+test/                          # 6 suites, 67 assertions
 docs/                          # Submission text, demo script, product feedback, sample before/after
 ```
 

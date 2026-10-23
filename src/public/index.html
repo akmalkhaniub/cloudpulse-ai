@@ -506,7 +506,7 @@ resource "aws_instance" "batch_processor" {
       document.getElementById('btnApprove').classList.toggle('hidden', !wait.length);
 
       const vb = document.getElementById('planVerifyBadge');
-      if (d.verification) {
+      if (d.verification && (d.patchesIncluded === undefined || d.patchesIncluded > 0)) {
         vb.textContent = `✓ Re-scanned patched code: ${d.verification.findingsBefore} → ${d.verification.findingsAfter} issues`;
         vb.classList.remove('hidden');
       } else vb.classList.add('hidden');

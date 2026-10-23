@@ -39,7 +39,7 @@ Every PR gets a description with a summary and rollout plan **written by Amazon 
 * **Change Safety Engine (`src/change_safety.ts`):** deterministic SAFE / CAUTION / DISRUPTIVE classification from documented AWS / Terraform behavior, with guards written into the patch: `final_snapshot_identifier` for RDS replacement, `apply_immediately = false` for Multi-AZ, same-family rightsizing so the existing x86 AMI still boots, and the VPC CIDR inferred from the manifest for SSH.
 * **Amazon Bedrock Converse (`src/bedrock_converse_agent.ts`):** Nova Pro runs a real `toolUse` / `toolResult` audit loop and writes each PR's summary and rollout plan. A deterministic simulator and template keep everything runnable without AWS credentials.
 * **Patch synthesizer (`src/remediation_synthesizer.ts`):** block-scoped attribute edits and an LCS unified diff, combined into one applicable patch.
-* **Tests:** 62 assertions in 6 suites, including the voice approval flow, the snapshot guard, and schema conformance. Detection scores F1 = 1.000 on our labeled, clean, and adversarial fixtures.
+* **Tests:** 67 assertions in 6 suites, including the voice approval flow, the snapshot guard, and schema conformance. Detection scores F1 = 1.000 on our labeled, clean, and adversarial fixtures.
 
 ---
 

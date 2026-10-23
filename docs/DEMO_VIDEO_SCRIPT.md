@@ -15,7 +15,7 @@
 3. In a second terminal, have this ready (Scene 6): `npx @modelcontextprotocol/inspector`
    Transport: **Streamable HTTP** · URL: `http://localhost:3002/api/mcp` · click **Connect**.
 4. Have `src/alexa_mcp_server.ts` open in your editor, scrolled to `handleAlexaUtterance`.
-5. Make sure `GITHUB_TOKEN` is **not** set (PR stays a dry run).
+5. Leave `CLOUDPULSE_LIVE_PR` unset so the PR stays a dry run.
 
 ---
 
@@ -94,10 +94,10 @@
 ---
 
 ## Scene 7 · Proof & close (2:35 – 2:50)
-> **Switch:** terminal with `npm test` output (62 assertions passing).
+> **Switch:** terminal with `npm test` output (67 assertions passing).
 
 **Say:**
-> *62 automated checks, including the approval flow and every tool's output schema.*
+> *67 automated checks, including the approval flow and every tool's output schema.*
 > *CloudPulse: the cloud architect that asks before it breaks things.*
 > *Thank you.*
 

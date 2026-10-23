@@ -60,6 +60,17 @@ try {
   }
   ok('every tool result matches its declared outputSchema', schemaOk);
 
+  // Edge cases found in the final QC pass.
+  const ping = await post('/api/mcp', { jsonrpc: '2.0', id: 'p', method: 'ping' });
+  ok('MCP ping returns an empty result', ping.body.result && Object.keys(ping.body.result).length === 0);
+  const noArgs = await post('/api/mcp', { jsonrpc: '2.0', id: 'n', method: 'tools/call', params: { name: 'ship_github_remediation_pr', arguments: {} } });
+  ok('missing required tool arguments return isError instead of shipping an empty PR', noArgs.body.result?.isError === true);
+  const empty = await post('/api/alexa', { utterance: 'Alexa, fix it', hclContent: '' });
+  ok('"fix it" on an empty manifest opens no PR and says so', empty.body.data.prMode === 'skipped' && /didn't open a pull request/.test(empty.body.spokenSpeech));
+  const HIGH_ONLY = 'resource "aws_db_instance" "db" {\n  engine            = "postgres"\n  storage_encrypted = false\n  multi_az          = true\n}';
+  const brief = await post('/api/alexa', { utterance: 'Alexa, morning briefing', hclContent: HIGH_ONLY });
+  ok('briefing never claims an all-clear when a HIGH finding exists', !/zero high-risk|every check passed/i.test(brief.body.spokenSpeech) && /high-severity/.test(brief.body.spokenSpeech));
+
   const rpcInit = await post('/api/mcp', {
     jsonrpc: '2.0',
     id: 1,

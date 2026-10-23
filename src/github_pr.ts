@@ -1,6 +1,7 @@
 /**
  * Open a remediation pull request from a unified diff.
- * Without GITHUB_TOKEN this returns a dry-run payload and does not call GitHub.
+ * Dry run by default. It only calls GitHub when CLOUDPULSE_LIVE_PR=true AND GITHUB_TOKEN is set,
+ * so a token that happens to be in a developer's environment never opens a PR by accident.
  */
 export interface PullRequestDraft {
   owner: string;
@@ -37,7 +38,7 @@ export async function openRemediationPr(
   opts: Partial<PullRequestDraft> = {}
 ): Promise<PullRequestResult> {
   const draft = buildRemediationDraft(patch, opts);
-  const token = process.env.GITHUB_TOKEN;
+  const token = process.env.CLOUDPULSE_LIVE_PR === 'true' ? process.env.GITHUB_TOKEN : undefined;
   if (!token) return { mode: 'dry-run', url: null, draft };
 
   const resp = await fetchImpl(`https://api.github.com/repos/${draft.owner}/${draft.repo}/pulls`, {

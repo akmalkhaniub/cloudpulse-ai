@@ -2,11 +2,9 @@
  * Alexa+ Model Context Protocol (MCP) Server & Unified Amazon Ecosystem Bridge
  *
  * Built for the "Build, Ship, Shape: Amazon Developer Hackathon".
- * Unifies:
- *  - Alexa+ Track: Self-hosted JSON-RPC 2.0 MCP Server (`/api/mcp`) & voice dispatcher (`/api/alexa`)
- *  - Bee Wearable Track: Ambient architecture meeting transcript ingestion (`ingest_bee_meeting_transcript`)
- *  - Fire TV Track: 10-foot NOC / Engineering War-Room Wallboard telemetry (`get_firetv_wallboard_state`)
- *  - AWS Builder Track: Live Amazon Bedrock Converse API (`amazon.nova-pro-v1:0`) tool orchestration
+ *  - Alexa+ track: self-hosted JSON-RPC 2.0 MCP server (`/api/mcp`) and simulated voice dispatcher (`/api/alexa`)
+ *  - AWS Builder: Amazon Bedrock Converse (`amazon.nova-pro-v1:0`) audit tool loop and PR descriptions
+ *  - Concepts (simulated, sample data): standup transcript sync and a 10-foot team wallboard
  */
 import { createHash } from 'node:crypto';
 import { IaCParser } from './iac_parser.js';
@@ -138,7 +136,8 @@ export const OUTPUT_SCHEMAS: Record<string, ReturnType<typeof obj>> = {
     prMode: 'string', prUrl: ['string', 'null'], branch: 'string', title: 'string', patchesIncluded: 'number',
     rulesRemediated: 'array', approvedDisruptive: 'boolean', heldBackForApproval: 'array', approvalRequired: 'boolean',
     shippedRisks: 'array', verification: 'object', prDescription: 'string', prDescriptionSource: 'string',
-    prDescriptionLatencyMs: 'number', monthlySavingsUnlockedUSD: 'number', annualSavingsUnlockedUSD: 'number', combinedDiff: 'string'
+    prDescriptionLatencyMs: 'number', monthlySavingsUnlockedUSD: 'number', annualSavingsUnlockedUSD: 'number', combinedDiff: 'string',
+    findingsTotal: 'number'
   }),
   ingest_bee_meeting_transcript: obj({
     device: 'string', transcriptLines: 'number', extractedActionItems: 'array', verifiedInTerraformCount: 'number',
@@ -156,7 +155,7 @@ export class AlexaMcpServer {
     protocolVersion: '2026-07-28',
     supportedProtocolVersions: SUPPORTED_MCP_VERSIONS,
     transportMode: 'stateless-streamable-http',
-    ecosystem: 'Alexa+ MCP (2026-07-28) • Amazon Bee Wearable • Amazon Fire TV War-Room • AWS Bedrock Converse'
+    ecosystem: 'Alexa+ MCP server (2026-07-28) • Amazon Bedrock Converse (Nova Pro)'
   };
 
   /**
@@ -338,13 +337,13 @@ export class AlexaMcpServer {
       },
       {
         name: 'ingest_bee_meeting_transcript',
-        title: 'Amazon Bee Wearable Standup Transcript Sync',
-        description: 'Ingests an ambient standup/architecture meeting transcript from the Amazon Bee AI Wearable, extracts spoken cloud action items, cross-verifies them against Terraform AST, and stages remediation patches.',
+        title: 'Standup Transcript Sync (concept)',
+        description: 'Concept, sample data: maps cloud concerns spoken in a diarized standup transcript to Well-Architected rules and checks whether each one really exists in the Terraform. Not a live Bee device integration.',
         inputSchema: {
           $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
           properties: {
-            transcript: { type: 'string', description: 'Ambient meeting transcript captured by Amazon Bee wearable' },
+            transcript: { type: 'string', description: 'Diarized standup transcript text' },
             hclContent: { type: 'string', description: 'Terraform / OpenTofu HCL manifest to cross-reference' }
           },
           required: ['hclContent']
@@ -361,7 +360,7 @@ export class AlexaMcpServer {
           required: ['device', 'verifiedInTerraformCount', 'spokenSummary']
         },
         annotations: {
-          title: 'Ingest Bee Wearable Standup',
+          title: 'Standup Transcript Sync (concept)',
           readOnlyHint: true,
           destructiveHint: false,
           idempotentHint: true,
@@ -370,8 +369,8 @@ export class AlexaMcpServer {
       },
       {
         name: 'get_firetv_wallboard_state',
-        title: 'Amazon Fire TV 10-Foot NOC War-Room Wallboard',
-        description: 'Returns a 10-foot Amazon Fire TV NOC War-Room Wallboard payload formatted for D-Pad remote navigation (ArrowLeft/ArrowRight/Enter).',
+        title: '10-Foot Team Wallboard State (concept)',
+        description: 'Concept: returns findings formatted as tiles for a 10-foot team display with remote-style arrow-key navigation. Browser prototype, not a Fire OS / Vega OS app.',
         inputSchema: {
           $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
@@ -454,6 +453,10 @@ export class AlexaMcpServer {
       };
     }
 
+    if (req.method === 'ping') {
+      return { jsonrpc: '2.0', id, result: {} };
+    }
+
     if (req.method === 'tools/list') {
       return {
         jsonrpc: '2.0',
@@ -465,6 +468,21 @@ export class AlexaMcpServer {
     if (req.method === 'tools/call') {
       const toolName = req.params?.name;
       const args = req.params?.arguments || {};
+      const descriptor = this.listTools().find((t) => t.name === toolName);
+      const missing = ((descriptor?.inputSchema as { required?: string[] })?.required || [])
+        .filter((k) => args[k] === undefined || args[k] === null || args[k] === '');
+      if (descriptor && missing.length) {
+        // MCP: invalid tool input is reported as a tool result with isError, so the model can correct itself.
+        return {
+          jsonrpc: '2.0',
+          id,
+          result: {
+            _meta: responseMeta,
+            content: [{ type: 'text', text: `Missing required argument(s): ${missing.join(', ')}. Pass the Terraform manifest as hclContent.` }],
+            isError: true
+          }
+        };
+      }
       try {
         const payload = await this.callTool(toolName, args);
         return {
@@ -489,7 +507,7 @@ export class AlexaMcpServer {
     return { jsonrpc: '2.0', id, error: { code: -32601, message: `Method not found: ${req.method}` } };
   }
 
-  /** Parse an Amazon Bee wearable transcript and correlate spoken concerns with AST findings. */
+  /** Concept: parse a standup transcript and correlate spoken concerns with AST findings. */
   extractBeeActionItems(transcript: string, foundRuleIds: Set<string>): BeeActionItem[] {
     const lines = transcript.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     const rulesCatalog: Array<{ pattern: RegExp; ruleId: string; summary: string }> = [
@@ -553,9 +571,22 @@ export class AlexaMcpServer {
       const engineer = args.engineerName || 'Akmal';
       const criticals = audit.findings.filter((f) => f.severity === 'CRITICAL');
       const highCount = audit.findings.filter((f) => f.severity === 'HIGH').length;
-      const speech = criticals.length > 0
-        ? `Good morning ${engineer}. I scanned ${resources.length} Terraform resources in your production stack. Alert: you have ${plural(criticals.length, 'critical security vulnerability', 'critical security vulnerabilities')}—${criticals[0].title}—plus ${plural(highCount, 'high-severity finding', 'high-severity findings')}. On the FinOps side, rightsizing oversized compute will save ${usd(audit.totalMonthlySavingsUSD)} per month, or ${usd(annualSavings)} per year. ${plural(plan.safeToShip.length, 'fix is', 'fixes are')} safe to ship now${plan.needsApproval.length ? `, and ${plural(plan.needsApproval.length, 'needs', 'need')} your approval because ${describeRisks(plan.needsApproval)}` : ''}. Say "Alexa, fix it" when you're ready.`
-        : `Good morning ${engineer}. All ${resources.length} Terraform resources passed critical security checks with zero high-risk exposures.`;
+      const severityLine = criticals.length > 0
+        ? `Alert: you have ${plural(criticals.length, 'critical security vulnerability', 'critical security vulnerabilities')}—${criticals[0].title}—plus ${plural(highCount, 'high-severity finding', 'high-severity findings')}.`
+        : highCount > 0
+          ? `No critical issues, but ${plural(highCount, 'high-severity finding needs', 'high-severity findings need')} attention.`
+          : `No critical or high-severity issues; ${plural(audit.violationsCount, 'lower-severity finding', 'lower-severity findings')}.`;
+      const savingsLine = audit.totalMonthlySavingsUSD > 0
+        ? ` On the FinOps side, rightsizing will save ${usd(audit.totalMonthlySavingsUSD)} per month, or ${usd(annualSavings)} per year.`
+        : '';
+      const fixLine = plan.safeToShip.length || plan.needsApproval.length
+        ? ` ${plural(plan.safeToShip.length, 'fix is', 'fixes are')} safe to ship now${plan.needsApproval.length ? `, and ${plural(plan.needsApproval.length, 'needs', 'need')} your approval because ${describeRisks(plan.needsApproval)}` : ''}. Say "Alexa, fix it" when you're ready.`
+        : ' None of these has a safe automatic fix, so they are flagged for manual review.';
+      const speech = resources.length === 0
+        ? `Good morning ${engineer}. I didn't find any Terraform resources to check. Paste a manifest and ask me again.`
+        : audit.violationsCount === 0
+          ? `Good morning ${engineer}. I scanned ${plural(resources.length, 'Terraform resource', 'Terraform resources')} and every check passed. Nothing to fix today.`
+          : `Good morning ${engineer}. I scanned ${plural(resources.length, 'Terraform resource', 'Terraform resources')}. ${severityLine}${savingsLine}${fixLine}`;
 
       return {
         briefingType: 'ALEXA_PLUS_MORNING_CLOUD_BRIEFING',
@@ -638,9 +669,33 @@ export class AlexaMcpServer {
       };
       const monthly = Math.round(audit.findings.filter((f) => shippedSet.has(f.ruleId)).reduce((a, f) => a + f.monthlySavingsUSD, 0) * 100) / 100;
 
+      if (chosen.patchCount === 0) {
+        return {
+          prMode: 'skipped',
+          prUrl: null,
+          branch: '',
+          title: '',
+          patchesIncluded: 0,
+          rulesRemediated: [],
+          approvedDisruptive: approveDisruptive,
+          heldBackForApproval: heldBack,
+          approvalRequired: heldBack.length > 0,
+          shippedRisks: [],
+          verification,
+          prDescription: '',
+          prDescriptionSource: 'template',
+          prDescriptionLatencyMs: 0,
+          monthlySavingsUnlockedUSD: 0,
+          annualSavingsUnlockedUSD: 0,
+          combinedDiff: '',
+          findingsTotal: audit.violationsCount
+        };
+      }
+
       const brief = await this.bedrockAgent.writeChangeBrief({
         shippedRisks: shipped,
         heldBackRisks: heldBack,
+        humanApprovedRuleIds: approveDisruptive ? shipped.filter((r) => r.requiresApproval).map((r) => r.ruleId) : [],
         monthlySavingsUSD: monthly,
         verification
       });
@@ -666,7 +721,8 @@ export class AlexaMcpServer {
         prDescriptionLatencyMs: brief.latencyMs,
         monthlySavingsUnlockedUSD: monthly,
         annualSavingsUnlockedUSD: Math.round(monthly * 12 * 100) / 100,
-        combinedDiff: chosen.diff
+        combinedDiff: chosen.diff,
+        findingsTotal: audit.violationsCount
       };
     }
 
@@ -783,14 +839,14 @@ export class AlexaMcpServer {
         transcript: extra.transcript || SAMPLE_BEE_TRANSCRIPT
       });
       const items = (data.extractedActionItems as BeeActionItem[]) || [];
-      const speech = `I synced your Amazon Bee wearable recording from this morning's standup. I extracted ${items.length} spoken cloud action items and verified ${data.verifiedInTerraformCount} of them directly in your Terraform AST—with ${usd(Number(data.monthlySavingsUSD))} per month in potential savings. The combined patch is staged and ready for review.`;
+      const speech = `I checked the standup transcript, which is sample data for this concept. I extracted ${items.length} spoken cloud action items and verified ${data.verifiedInTerraformCount} of them directly in your Terraform AST—with ${usd(Number(data.monthlySavingsUSD))} per month in potential savings. The combined patch is staged and ready for review.`;
       return {
         utterance,
         matchedIntent: 'BeeWearableMeetingSync',
         mcpMethodCalled: 'tools/call',
         mcpToolName: 'ingest_bee_meeting_transcript',
         spokenSpeech: speech,
-        cardTitle: 'Amazon Bee Wearable Sync: Standup Transcript → Verified Terraform Patches',
+        cardTitle: 'Standup Transcript → Verified Findings (concept)',
         data
       };
     }
@@ -798,14 +854,14 @@ export class AlexaMcpServer {
     if (lower.includes('fire tv') || lower.includes('firetv') || lower.includes('wallboard') || lower.includes('war room') || has('tv')) {
       const data = await this.callTool('get_firetv_wallboard_state', { hclContent });
       const kpis = data.kpis as Record<string, unknown>;
-      const speech = `Launching Fire TV 10-foot Engineering War-Room mode. Displaying ${plural(Number(kpis.activeViolations), 'active Well-Architected finding', 'active Well-Architected findings')} and ${usd(Number(kpis.annualSavingsUSD))} in annual FinOps savings. Use your Fire TV remote left and right directional buttons to inspect each tile and press Select to view the patch.`;
+      const speech = `Here is the 10-foot wallboard view, a browser concept. Displaying ${plural(Number(kpis.activeViolations), 'active Well-Architected finding', 'active Well-Architected findings')} and ${usd(Number(kpis.annualSavingsUSD))} in annual FinOps savings. Use the left and right arrow keys to move between tiles and Enter to view the patch.`;
       return {
         utterance,
         matchedIntent: 'FireTvWallboardLaunch',
         mcpMethodCalled: 'tools/call',
         mcpToolName: 'get_firetv_wallboard_state',
         spokenSpeech: speech,
-        cardTitle: 'Amazon Fire TV 10-Foot NOC War-Room Wallboard Activated',
+        cardTitle: '10-Foot Wallboard (concept)',
         data
       };
     }
@@ -823,7 +879,14 @@ export class AlexaMcpServer {
       const held = heldBack.length
         ? ` I held back ${plural(heldBack.length, 'change', 'changes')} that ${heldBack.length === 1 ? 'needs' : 'need'} your approval: ${describeRisks(heldBack)}. I've added a final-snapshot guard, but it means downtime. Say "approve" to include ${heldBack.length === 1 ? 'it' : 'them'}.`
         : '';
-      const speech = `${prPhrase} with ${plural(Number(data.patchesIncluded), 'safe fix', 'safe fixes')}${fixed ? `: ${fixed}` : ''}${savings}. I re-scanned the patched code: ${v.findingsBefore} issues down to ${v.findingsAfter}.${held}`;
+      const totalFindings = Number((data as any).findingsTotal ?? 0);
+      const speech = Number(data.patchesIncluded) > 0
+        ? `${prPhrase} with ${plural(Number(data.patchesIncluded), 'safe fix', 'safe fixes')}${fixed ? `: ${fixed}` : ''}${savings}. I re-scanned the patched code: ${v.findingsBefore} issues down to ${v.findingsAfter}.${held}`
+        : heldBack.length
+          ? `Nothing is safe to ship on its own, so I didn't open a pull request.${held}`
+          : totalFindings > 0
+            ? `I found ${plural(totalFindings, 'issue', 'issues')}, but none has a safe automatic fix, so I didn't open a pull request. They're flagged for manual review.`
+            : `There's nothing to fix. Every check passed, so I didn't open a pull request.`;
       return {
         utterance,
         matchedIntent: 'SynthesizeAndShipPR',

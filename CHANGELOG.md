@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Fixed (2026-10-23, final QC)
+- "Fix it" on an empty or clean manifest no longer stages an empty PR; it says why nothing was opened.
+- Morning briefing no longer claims "zero high-risk exposures" when HIGH findings exist without a CRITICAL one,
+  and handles empty manifests.
+- MCP: `ping` implemented; missing required tool arguments return `isError` instead of running with empty input.
+- Live GitHub PRs now need an explicit `CLOUDPULSE_LIVE_PR=true` in addition to `GITHUB_TOKEN`, so a token
+  in a developer's environment never opens a PR by accident.
+- PR descriptions record human approval instead of asking for it again; the model keeps conditional wording.
+- MCP tool titles and server info no longer present the Bee / Fire TV concepts as Amazon integrations.
+- Removed the ffmpeg dev dependency (video-production tooling moved out of the repo); archived the outdated
+  `ROADMAP.md` and `SPECIFICATION.md`.
+
 ### Added (2026-10-23) — Change Safety Engine
 - `src/change_safety.ts`: classifies every fix as SAFE / CAUTION / DISRUPTIVE from documented AWS / Terraform behavior
   (in place, restart, or replacement), with downtime, data risk, guards, and a "before you merge" checklist.

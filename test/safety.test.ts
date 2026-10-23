@@ -57,6 +57,12 @@ const brief = await new BedrockConverseAgent({ isMock: true }).writeChangeBrief(
   shippedRisks: plan.safeToShip, heldBackRisks: plan.needsApproval, monthlySavingsUSD: 420.48,
   verification: { findingsBefore: 2, findingsAfter: 0 }
 });
+const approvedBrief = await new BedrockConverseAgent({ isMock: true }).writeChangeBrief({
+  shippedRisks: [...plan.safeToShip, ...plan.needsApproval], heldBackRisks: [], humanApprovedRuleIds: ['SEC_UNENCRYPTED_DB'],
+  monthlySavingsUSD: 420.48, verification: { findingsBefore: 3, findingsAfter: 0 }
+});
+ok('an approved PR records the human approval instead of asking again',
+  approvedBrief.markdown.includes('Approved by a human') && !approvedBrief.markdown.includes('Held back'));
 ok('PR description always contains the code-generated risk table and held-back section',
   brief.markdown.includes('| `SEC_OPEN_SSH_INGRESS` |') && brief.markdown.includes('Held back') && brief.narrativeSource === 'template');
 
