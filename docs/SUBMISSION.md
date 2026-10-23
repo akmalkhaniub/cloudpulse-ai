@@ -1,65 +1,84 @@
 # 🏆 Devpost Submission — Build, Ship, Shape: Amazon Developer Hackathon
 
-- **Project Title:** CloudPulse AI — Voice-First DevSecOps & FinOps Agent for Alexa+
+- **Project Title:** CloudPulse AI — The Alexa+ Cloud Architect That Asks Before It Breaks Things
+- **Tagline:** Fixes what's safe in your AWS Terraform, and asks you before anything that could cause downtime.
 - **Hackathon:** [Build, Ship, Shape: Amazon Developer Hackathon](https://amazonappdev2026.devpost.com/)
-- **Primary Track:** Alexa+ — self-hosted MCP server plus a simulated Alexa+ voice experience in a web app (simulation source: `src/alexa_mcp_server.ts`, `src/public/index.html`)
-- **Mini-Challenges:** AWS Builder (Amazon Bedrock Converse API, `amazon.nova-pro-v1:0`) • Open Source (MIT-licensed, new public repo)
-- **Concept extensions (simulated, not entered in those tracks):** Bee-style standup transcript sync and a Fire TV-style 10-foot wallboard, both running in the browser
-- **Repository:** https://github.com/akmalkhaniub/cloudpulse-ai (MIT)
+- **Primary Track:** Alexa+ — self-hosted MCP server plus a simulated Alexa+ voice experience in a web app (simulation source: `src/alexa_mcp_server.ts` → `handleAlexaUtterance`, `src/public/index.html`)
+- **Mini-Challenges:** AWS Builder (Amazon Bedrock Converse, `amazon.nova-pro-v1:0`) • Open Source (MIT, new public repo)
+- **Repository:** https://github.com/akmalkhaniub/cloudpulse-ai
 - **Built during the submission window:** first commit September 16, 2026
-- **Submission Deadline:** Friday, October 23, 2026 @ 12:00 PM PDT
 
 ---
 
 ## Inspiration
 
-Alexa+ already handles calendars, email, and reminders. We asked a bigger question: **what if Alexa+ could act as a senior cloud architect for an engineering team, through a single self-hosted Model Context Protocol (MCP) server backed by Amazon Bedrock?**
+Turning on encryption for an RDS database looks like a one-line Terraform change. It isn't: AWS can't encrypt an existing instance, so Terraform **destroys the database and creates a new one**. Security scanners flag the problem, and auto-fix tools happily write that one line, but neither tells you what happens when you apply it.
 
-Every morning, teams talk about cloud risks in standup (*"Did we close port 22 on the web security group? Why are we paying for an m5.4xlarge?"*) and those action items get lost in chat. With CloudPulse AI you say *"Alexa, give me my morning cloud briefing"* or *"Alexa, fix all violations and ship a pull request"*, and the agent audits your Terraform, writes one verified patch, and stages the PR.
+We wanted an Alexa+ cloud architect that behaves like a careful senior engineer: it fixes what's safe, explains the blast radius of everything else, and **waits for a human "yes"** before anything disruptive. Voice turned out to be the right interface for exactly that: a briefing, a question, and an approval.
 
 ---
 
 ## What it does
 
-CloudPulse AI is a self-hosted **Alexa+ MCP server** (`POST /api/mcp`, JSON-RPC 2.0) exposing **6 tools**, with an Alexa+ voice simulator (`POST /api/alexa`) that uses browser Speech-to-Text and Text-to-Speech:
+Ask Alexa+ (simulated in the browser) or any MCP client:
 
-* **☀️ Morning Cloud Briefing (`get_morning_cloud_briefing`):** a spoken summary of security posture and FinOps savings ($462.53/mo, $5,550.36/yr on the sample stack, from a local us-east-1 price table).
-* **🔍 Well-Architected Audit (`audit_iac_manifest`):** an Amazon Bedrock Converse tool-use loop (`amazon.nova-pro-v1:0`) over a deterministic HCL rule engine covering Security, Reliability, and Cost Optimization.
-* **🛠️ Patch Synthesis (`synthesize_remediation_diff`):** fixes scoped to the offending resource block, combined into **one unified diff that applies cleanly with `git apply`**. Re-auditing the patched sample manifest returns zero findings.
-* **🚀 Voice PR Shipping (`ship_github_remediation_pr`):** stages the combined patch as a GitHub pull request (dry run without `GITHUB_TOKEN`).
-* **🐝 Standup Transcript Sync (`ingest_bee_meeting_transcript`, concept):** maps spoken concerns in a sample diarized standup transcript to Well-Architected rules and checks whether each one really exists in the Terraform. It does not connect to a live Bee device.
-* **📺 10-Foot Wallboard (`get_firetv_wallboard_state`, concept):** a browser-based war-room display with D-Pad-style arrow-key navigation. It is not a Fire OS / Vega OS app.
+1. **"Give me my morning cloud briefing."** Critical risks, monthly savings, and how many fixes are safe vs. need approval.
+2. **"Is it safe to fix everything?"** A blast-radius check for each fix: how AWS applies it (in place, restart, or replacement), downtime, data risk, and the guards CloudPulse adds.
+3. **"Fix it."** One pull request with only the safe fixes, as a single patch that applies with `git apply`, re-scanned to prove the issues are gone (3 → 0 on the sample). Disruptive fixes are held back, with the reason spoken aloud.
+4. **"Approve the database change."** The PR is updated with the held-back fix plus a **final-snapshot guard**, so the old database is snapshotted before Terraform deletes it (4 → 0).
+
+Every PR gets a description with a summary and rollout plan **written by Amazon Nova Pro** from structured facts, plus a risk table and "before you merge" checklist **generated by code**, so the model can't drop or invent a risk.
+
+**Rules decide, AI explains, humans approve.**
 
 ---
 
 ## How we built it
 
-* **Alexa+ MCP Server (`src/alexa_mcp_server.ts`):** JSON-RPC 2.0 `initialize`, `tools/list`, and `tools/call` for all 6 tools, with `outputSchema` and annotations, plus natural-language utterance routing at `/api/alexa`.
-* **Amazon Bedrock Converse (`src/bedrock_converse_agent.ts`):** `@aws-sdk/client-bedrock-runtime` `ConverseCommand` with `amazon.nova-pro-v1:0` and a real multi-turn `toolUse` / `toolResult` loop. A full live audit takes about 6–9 s end to end in our tests (us-east-1, called from Pakistan). Without AWS credentials it falls back to a deterministic simulator that follows the Converse schema, so judges can run everything offline.
-* **HCL Parser, Rule Engine & Remediation (`src/iac_parser.ts`, `src/well_architected_engine.ts`, `src/remediation_synthesizer.ts`):** block-scoped attribute edits and an LCS-based unified diff with proper hunks.
-* **Automated Verification (`test/`):** 43 assertions across 5 suites: 8 core/Bedrock, 4 parser, 6 F1 eval, 7 remediation-correctness, and 18 HTTP + MCP integration. Detection scores **1.000 precision / recall / F1** on labeled, clean, and adversarial-clean Terraform fixtures (`npm run eval`).
+* **Alexa+ MCP server (`src/alexa_mcp_server.ts`):** JSON-RPC 2.0 with 7 tools, including `assess_change_risk` (read-only) and a safety-gated `ship_github_remediation_pr` that refuses disruptive fixes unless `approveDisruptive: true` is passed after the user confirms. Verified with the **official MCP Inspector**: all 7 tools pass, and a test checks every tool's output against its declared `outputSchema`.
+* **Change Safety Engine (`src/change_safety.ts`):** deterministic SAFE / CAUTION / DISRUPTIVE classification from documented AWS / Terraform behavior, with guards written into the patch: `final_snapshot_identifier` for RDS replacement, `apply_immediately = false` for Multi-AZ, same-family rightsizing so the existing x86 AMI still boots, and the VPC CIDR inferred from the manifest for SSH.
+* **Amazon Bedrock Converse (`src/bedrock_converse_agent.ts`):** Nova Pro runs a real `toolUse` / `toolResult` audit loop and writes each PR's summary and rollout plan. A deterministic simulator and template keep everything runnable without AWS credentials.
+* **Patch synthesizer (`src/remediation_synthesizer.ts`):** block-scoped attribute edits and an LCS unified diff, combined into one applicable patch.
+* **Tests:** 62 assertions in 6 suites, including the voice approval flow, the snapshot guard, and schema conformance. Detection scores F1 = 1.000 on our labeled, clean, and adversarial fixtures.
 
 ---
 
 ## Challenges we ran into
 
-* Our first patch generator inserted `storage_encrypted = true` without removing the existing `false` (invalid Terraform), and it emitted one diff per finding against the same file. We rewrote it to edit attributes in place inside the right resource block and to emit one combined, `git apply`-able patch, with regression tests.
-* Multi-turn Converse tool loops take several seconds, which is long for a voice turn. See the feedback below.
+* **Our first patches were dangerous.** They duplicated attributes (invalid Terraform), resized x86 instances to Graviton without changing the AMI (the instance wouldn't boot), and treated RDS encryption as a harmless edit. Fixing that is what turned into the Change Safety Engine.
+* **A real MCP client found bugs our own UI never did:** `_meta` placed at the top level of JSON-RPC responses, and output schemas that didn't match what tools returned. Both are fixed and now tested.
+* **Latency:** a live multi-turn Converse audit took ~6–9 s end to end in our tests (us-east-1, called from Pakistan), which is long for a voice turn.
 
 ---
 
-## Product Feedback ("Shape")
+## Accomplishments we're proud of
 
-Full feedback is in `docs/AMAZON_DEVELOPER_FEEDBACK.md` and in the Feedback tab of the web app:
-1. **Alexa+ MCP ↔ Bedrock Converse schema bridge:** MCP `inputSchema` and Converse `toolSpec.inputSchema.json` have to be maintained twice. We propose a shared adapter.
-2. **Converse `toolResult` serialization:** primitive or array results get rejected. We propose auto-wrapping them in the SDK.
-3. **Voice latency:** progressive or streaming responses for multi-step agent turns that take 6–9 s.
-4. **Feature requests (concept extensions):** structured action-item webhooks from Bee, and an MCP-state hook for Fire TV / Vega OS 10-foot UIs.
+* The approval moment: CloudPulse says *"encrypting the database will replace it"* before anything ships, and adds the snapshot guard itself.
+* The same safety gate protects **any** MCP agent, not just Alexa+.
+* Honest engineering: a "what's real vs. simulated" table in the README, measured numbers only.
+
+---
+
+## What we learned
+
+* Voice is a poor interface for authoring infrastructure changes and a great one for approving them.
+* LLMs are most trustworthy here as explainers over deterministic facts, not as the component that decides what is safe.
 
 ---
 
 ## What's next
 
-* Connect the MCP server to a real Alexa+ Agent Skill endpoint.
-* Push the remediation branch and its commit before opening the PR (today live mode opens a PR from an existing branch).
-* Replace the sample transcript with live Bee data, and port the wallboard to Vega OS.
+* Confirm blast radius against a real `terraform plan` (which reports replacements directly).
+* Use Checkov / Trivy for broader detection, and keep CloudPulse for the fix → safety → approval loop.
+* Connect the MCP server to a real Alexa+ Agent Skill endpoint, and push the branch before opening live PRs.
+* CloudWatch / Compute Optimizer utilization for rightsizing.
+
+---
+
+## Product Feedback ("Shape")
+
+Full feedback: `docs/AMAZON_DEVELOPER_FEEDBACK.md`. Highlights:
+1. **Alexa+ MCP:** a first-class confirmation primitive for tools with `destructiveHint`, so voice hosts can run "are you sure?" flows consistently.
+2. **MCP ↔ Bedrock Converse schema bridge:** tool schemas currently have to be maintained twice.
+3. **Converse `toolResult`:** auto-wrap primitive or array results instead of rejecting them.
+4. **Voice latency:** progressive / streaming responses for agent turns that take 6–9 s.

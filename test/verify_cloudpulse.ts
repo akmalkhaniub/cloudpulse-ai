@@ -75,7 +75,7 @@ assert(finopsResult.projectedMonthlySavingsUSD === expectedSavings, 'Monthly sav
 assert(finopsResult.annualizedSavingsUSD === Math.round(expectedSavings * 12 * 100) / 100, 'Annualized savings must be 12x the monthly table');
 console.log(`   📈 Projected FinOps Annual Savings: $${finopsResult.annualizedSavingsUSD}/year`);
 
-console.log('7️⃣ Testing Batch Zero-Downtime Patch Generation...');
+console.log('7️⃣ Testing Batch Patch Generation...');
 assert(converseResult.patches.length === 4, 'Must generate patches for all 4 violations');
 console.log(`   🛠️ Generated ${converseResult.patches.length} compliant Terraform remediation patches.`);
 

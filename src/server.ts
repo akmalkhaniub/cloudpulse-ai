@@ -68,9 +68,14 @@ export function createCloudPulseServer(): { server: http.Server; agent: BedrockC
 
       if (req.url === '/api/mcp' && req.method === 'POST') {
         const rpcReq = await readJsonBody(req);
+        // JSON-RPC notifications (no id, e.g. notifications/initialized) get 202 Accepted with no body.
+        if (rpcReq && typeof (rpcReq as any).method === 'string' && (rpcReq as any).id === undefined) {
+          res.writeHead(202);
+          return res.end();
+        }
         const headerVer = typeof req.headers['mcp-protocol-version'] === 'string' ? req.headers['mcp-protocol-version'] : undefined;
         const rpcRes = await mcp.handleJsonRpc(rpcReq as any, headerVer);
-        res.setHeader('MCP-Protocol-Version', rpcRes._meta?.['io.modelcontextprotocol/protocolVersion'] ?? mcp.serverInfo.protocolVersion);
+        res.setHeader('MCP-Protocol-Version', (rpcRes as any).result?._meta?.['io.modelcontextprotocol/protocolVersion'] ?? mcp.serverInfo.protocolVersion);
         return sendJson(res, 200, rpcRes);
       }
 

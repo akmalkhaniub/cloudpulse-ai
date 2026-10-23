@@ -8,10 +8,12 @@
  *  - Fire TV Track: 10-foot NOC / Engineering War-Room Wallboard telemetry (`get_firetv_wallboard_state`)
  *  - AWS Builder Track: Live Amazon Bedrock Converse API (`amazon.nova-pro-v1:0`) tool orchestration
  */
+import { createHash } from 'node:crypto';
 import { IaCParser } from './iac_parser.js';
 import { WellArchitectedEngine } from './well_architected_engine.js';
 import { RemediationSynthesizer } from './remediation_synthesizer.js';
 import { openRemediationPr } from './github_pr.js';
+import { assessChangeRisk, buildChangePlan, type ChangeRisk } from './change_safety.js';
 import type { BedrockConverseAgent } from './bedrock_converse_agent.js';
 
 export interface JsonRpcRequest {
@@ -41,6 +43,8 @@ export interface AlexaVoiceResponse {
     | 'MorningCloudBriefing'
     | 'DeepWellArchitectedAudit'
     | 'SynthesizeAndShipPR'
+    | 'ApproveDisruptiveChanges'
+    | 'AssessChangeRisk'
     | 'BeeWearableMeetingSync'
     | 'FireTvWallboardLaunch';
   mcpMethodCalled: string;
@@ -77,11 +81,73 @@ const FIX_PHRASES: Record<string, string> = {
   COST_OVERPROVISIONED_EC2: 'rightsizing oversized EC2'
 };
 
+const RISK_PHRASES: Record<string, string> = {
+  SEC_UNENCRYPTED_DB: 'encrypting the database will replace it',
+  SEC_UNENCRYPTED_EBS: 'encrypting the EBS volume will replace it'
+};
+
+function joinPhrases(phrases: string[]): string {
+  if (phrases.length <= 1) return phrases.join('');
+  return phrases.slice(0, -1).join(', ') + ', and ' + phrases[phrases.length - 1];
+}
+
+function describeRisks(risks: ChangeRisk[]): string {
+  return joinPhrases(risks.map((r) => RISK_PHRASES[r.ruleId] || `${r.ruleId} needs manual review`));
+}
+
+/**
+ * True only for a clear approval: the sentence starts with an approval phrase ("yes", "approve",
+ * "go ahead", ...) or explicitly says "approve", and it is not a question.
+ */
+export function isApprovalUtterance(text: string): boolean {
+  const t = text.toLowerCase().trim().replace(/^(hey\s+)?alexa[,!.]?\s*/, '');
+  if (t.includes('?') || /\b(whether|if)\b/.test(t)) return false;
+  if (/^(yes|yeah|yep|approve|approved|i approve|confirm|confirmed|go ahead|proceed|do it)\b/.test(t)) return true;
+  return /\bapprove\b/.test(t) && !/^(can|could|would|should|do|does|did|is|are|what|why|how|when)\b/.test(t);
+}
+
 function describeFixes(ruleIds: string[]): string {
   const phrases = [...new Set(ruleIds)].map((r) => FIX_PHRASES[r]).filter(Boolean);
   if (phrases.length <= 1) return phrases.join('');
   return phrases.slice(0, -1).join(', ') + ', and ' + phrases[phrases.length - 1];
 }
+
+type JsonType = 'string' | 'number' | 'boolean' | 'array' | 'object' | 'null';
+const obj = (props: Record<string, JsonType | JsonType[]>, required: string[] = Object.keys(props)) => ({
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  type: 'object',
+  properties: Object.fromEntries(Object.entries(props).map(([k, t]) => [k, { type: t }])),
+  required
+});
+
+/** Output schemas that match exactly what callTool returns (checked by test/server_integration.ts). */
+export const OUTPUT_SCHEMAS: Record<string, ReturnType<typeof obj>> = {
+  get_morning_cloud_briefing: obj({
+    briefingType: 'string', resourcesScanned: 'number', violationsCount: 'number', criticalCount: 'number',
+    monthlySavingsUSD: 'number', annualSavingsUSD: 'number', spokenSpeech: 'string',
+    findings: 'array', patches: 'array', changePlan: 'object'
+  }),
+  audit_iac_manifest: obj({
+    modelId: 'string', bedrockMode: 'string', audit: 'object', patches: 'array', toolCalls: 'array', usage: 'object'
+  }),
+  synthesize_remediation_diff: obj({ patchCount: 'number', combinedDiff: 'string', patches: 'array', changePlan: 'object' }),
+  assess_change_risk: obj({
+    overallRisk: 'string', safeToShip: 'array', needsApproval: 'array', spokenSummary: 'string', patches: 'array'
+  }),
+  ship_github_remediation_pr: obj({
+    prMode: 'string', prUrl: ['string', 'null'], branch: 'string', title: 'string', patchesIncluded: 'number',
+    rulesRemediated: 'array', approvedDisruptive: 'boolean', heldBackForApproval: 'array', approvalRequired: 'boolean',
+    shippedRisks: 'array', verification: 'object', prDescription: 'string', prDescriptionSource: 'string',
+    prDescriptionLatencyMs: 'number', monthlySavingsUnlockedUSD: 'number', annualSavingsUnlockedUSD: 'number', combinedDiff: 'string'
+  }),
+  ingest_bee_meeting_transcript: obj({
+    device: 'string', transcriptLines: 'number', extractedActionItems: 'array', verifiedInTerraformCount: 'number',
+    monthlySavingsUSD: 'number', annualSavingsUSD: 'number', combinedDiff: 'string', patches: 'array'
+  }),
+  get_firetv_wallboard_state: obj({
+    device: 'string', dpadNavigationSupported: 'boolean', remoteKeys: 'array', kpis: 'object', tiles: 'array'
+  })
+};
 
 export class AlexaMcpServer {
   readonly serverInfo = {
@@ -93,10 +159,20 @@ export class AlexaMcpServer {
     ecosystem: 'Alexa+ MCP (2026-07-28) • Amazon Bee Wearable • Amazon Fire TV War-Room • AWS Bedrock Converse'
   };
 
+  /**
+   * Manifests (by SHA-256) whose disruptive fixes have been explained to the user by voice
+   * (briefing, risk question, or a "fix it" that held changes back). "Approve" only works for these.
+   */
+  private readonly pendingApprovals = new Set<string>();
+
   constructor(private bedrockAgent: BedrockConverseAgent) {}
 
   /** MCP 2026-07-28 tools/list descriptor with title, JSON Schema 2020-12 inputSchema, outputSchema, and annotations. */
   listTools() {
+    return this.toolDescriptors().map((t) => ({ ...t, outputSchema: OUTPUT_SCHEMAS[t.name] ?? t.outputSchema }));
+  }
+
+  private toolDescriptors() {
     return [
       {
         name: 'get_morning_cloud_briefing',
@@ -168,8 +244,8 @@ export class AlexaMcpServer {
       },
       {
         name: 'synthesize_remediation_diff',
-        title: 'Zero-Downtime Terraform Git Diff Synthesizer',
-        description: 'Synthesizes zero-downtime unified Git diffs for all detected AWS Well-Architected violations.',
+        title: 'Terraform Remediation Diff Synthesizer',
+        description: 'Synthesizes one applicable unified Git diff for the detected AWS Well-Architected violations, with a blast-radius assessment for each fix.',
         inputSchema: {
           $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
@@ -197,15 +273,47 @@ export class AlexaMcpServer {
         }
       },
       {
+        name: 'assess_change_risk',
+        title: 'Remediation Blast-Radius Assessment',
+        description: 'Before anything ships: for each available fix, explains how AWS applies it (in place, restart, or replacement), downtime and data risk, the safety guards added to the patch, and whether a human must approve it.',
+        inputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            hclContent: { type: 'string', description: 'Terraform / OpenTofu HCL manifest' }
+          },
+          required: ['hclContent']
+        },
+        outputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: {
+            overallRisk: { type: 'string', enum: ['SAFE', 'CAUTION', 'DISRUPTIVE'] },
+            safeToShip: { type: 'array' },
+            needsApproval: { type: 'array' },
+            spokenSummary: { type: 'string' }
+          },
+          required: ['overallRisk', 'safeToShip', 'needsApproval', 'spokenSummary']
+        },
+        annotations: {
+          title: 'Assess Change Risk',
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
+        }
+      },
+      {
         name: 'ship_github_remediation_pr',
-        title: 'Autonomous GitHub Remediation PR Shipper',
-        description: 'Stages or opens a GitHub Pull Request containing the verified Terraform remediation patches.',
+        title: 'Safety-Gated GitHub Remediation PR',
+        description: 'Stages or opens ONE GitHub pull request with the verified fixes. Disruptive fixes (database or volume replacement) are held back unless approveDisruptive is true, which a client must only set after the user explicitly confirms.',
         inputSchema: {
           $schema: 'https://json-schema.org/draft/2020-12/schema',
           type: 'object',
           properties: {
             hclContent: { type: 'string', description: 'Terraform / OpenTofu HCL manifest' },
-            branchName: { type: 'string', description: 'Target remediation branch name' }
+            branchName: { type: 'string', description: 'Target remediation branch name' },
+            approveDisruptive: { type: 'boolean', description: 'Include fixes that replace resources. Only set after explicit user confirmation.', default: false }
           },
           required: ['hclContent']
         },
@@ -312,10 +420,10 @@ export class AlexaMcpServer {
       headerProtocolVersion ??
       this.serverInfo.protocolVersion;
 
-    if (
-      typeof requestedVersion === 'string' &&
-      !(SUPPORTED_MCP_VERSIONS as readonly string[]).includes(requestedVersion)
-    ) {
+    const isSupported = typeof requestedVersion === 'string' && (SUPPORTED_MCP_VERSIONS as readonly string[]).includes(requestedVersion);
+    // MCP lifecycle: on initialize, an unsupported client version is answered with the server's own version
+    // (version negotiation). Other methods reject an unsupported per-request version.
+    if (!isSupported && req.method !== 'initialize') {
       return {
         jsonrpc: '2.0',
         id,
@@ -330,15 +438,15 @@ export class AlexaMcpServer {
       };
     }
 
-    const activeVersion = typeof requestedVersion === 'string' ? requestedVersion : this.serverInfo.protocolVersion;
+    const activeVersion = isSupported ? (requestedVersion as string) : this.serverInfo.protocolVersion;
     const responseMeta = { 'io.modelcontextprotocol/protocolVersion': activeVersion };
 
     if (req.method === 'initialize') {
       return {
         jsonrpc: '2.0',
         id,
-        _meta: responseMeta,
         result: {
+          _meta: responseMeta,
           protocolVersion: activeVersion,
           serverInfo: this.serverInfo,
           capabilities: { tools: { listChanged: false } }
@@ -350,8 +458,7 @@ export class AlexaMcpServer {
       return {
         jsonrpc: '2.0',
         id,
-        _meta: responseMeta,
-        result: { tools: this.listTools() }
+        result: { _meta: responseMeta, tools: this.listTools() }
       };
     }
 
@@ -363,8 +470,8 @@ export class AlexaMcpServer {
         return {
           jsonrpc: '2.0',
           id,
-          _meta: responseMeta,
           result: {
+            _meta: responseMeta,
             content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
             structuredContent: payload,
             isError: false
@@ -374,13 +481,12 @@ export class AlexaMcpServer {
         return {
           jsonrpc: '2.0',
           id,
-          _meta: responseMeta,
           error: { code: -32602, message: (err as Error).message }
         };
       }
     }
 
-    return { jsonrpc: '2.0', id, _meta: responseMeta, error: { code: -32601, message: `Method not found: ${req.method}` } };
+    return { jsonrpc: '2.0', id, error: { code: -32601, message: `Method not found: ${req.method}` } };
   }
 
   /** Parse an Amazon Bee wearable transcript and correlate spoken concerns with AST findings. */
@@ -441,13 +547,14 @@ export class AlexaMcpServer {
     const patches = audit.findings.map((f) => RemediationSynthesizer.generatePatch(f, hclContent));
     const combined = RemediationSynthesizer.generateCombinedPatch(audit.findings, hclContent);
     const annualSavings = Math.round(audit.totalMonthlySavingsUSD * 12 * 100) / 100;
+    const plan = buildChangePlan(patches.filter((p) => p.autoFixable).map((p) => p.ruleId));
 
     if (name === 'get_morning_cloud_briefing') {
       const engineer = args.engineerName || 'Akmal';
       const criticals = audit.findings.filter((f) => f.severity === 'CRITICAL');
       const highCount = audit.findings.filter((f) => f.severity === 'HIGH').length;
       const speech = criticals.length > 0
-        ? `Good morning ${engineer}. I scanned ${resources.length} Terraform resources in your production stack. Alert: you have ${plural(criticals.length, 'critical security vulnerability', 'critical security vulnerabilities')}—${criticals[0].title}—plus ${plural(highCount, 'high-severity finding', 'high-severity findings')}. On the FinOps side, rightsizing oversized compute will save ${usd(audit.totalMonthlySavingsUSD)} per month, or ${usd(annualSavings)} per year. Say "Alexa, ship the remediation patch" whenever you're ready.`
+        ? `Good morning ${engineer}. I scanned ${resources.length} Terraform resources in your production stack. Alert: you have ${plural(criticals.length, 'critical security vulnerability', 'critical security vulnerabilities')}—${criticals[0].title}—plus ${plural(highCount, 'high-severity finding', 'high-severity findings')}. On the FinOps side, rightsizing oversized compute will save ${usd(audit.totalMonthlySavingsUSD)} per month, or ${usd(annualSavings)} per year. ${plural(plan.safeToShip.length, 'fix is', 'fixes are')} safe to ship now${plan.needsApproval.length ? `, and ${plural(plan.needsApproval.length, 'needs', 'need')} your approval because ${describeRisks(plan.needsApproval)}` : ''}. Say "Alexa, fix it" when you're ready.`
         : `Good morning ${engineer}. All ${resources.length} Terraform resources passed critical security checks with zero high-risk exposures.`;
 
       return {
@@ -459,6 +566,21 @@ export class AlexaMcpServer {
         annualSavingsUSD: annualSavings,
         spokenSpeech: speech,
         findings: audit.findings,
+        patches,
+        changePlan: plan
+      };
+    }
+
+    if (name === 'assess_change_risk') {
+      const lines = [
+        plan.safeToShip.length ? `${plural(plan.safeToShip.length, 'fix is', 'fixes are')} safe to ship: ${describeFixes(plan.safeToShip.map((r) => r.ruleId))}.` : '',
+        plan.needsApproval.length ? `${plural(plan.needsApproval.length, 'fix needs', 'fixes need')} your approval, because ${describeRisks(plan.needsApproval)}. I add a final-snapshot guard, but expect downtime.` : 'Nothing needs special approval.'
+      ].filter(Boolean);
+      return {
+        overallRisk: plan.overallRisk,
+        safeToShip: plan.safeToShip,
+        needsApproval: plan.needsApproval,
+        spokenSummary: lines.join(' '),
         patches
       };
     }
@@ -489,23 +611,62 @@ export class AlexaMcpServer {
       return {
         patchCount: targetRule ? selectedPatches.filter((p) => p.autoFixable).length : combined.patchCount,
         combinedDiff,
-        patches: selectedPatches
+        patches: selectedPatches,
+        changePlan: plan
       };
     }
 
     if (name === 'ship_github_remediation_pr') {
-      const combinedDiff = combined.diff;
-      const prResult = await openRemediationPr(combinedDiff);
+      // Safety gate: disruptive fixes only ship after an explicit human "yes".
+      const approveDisruptive = args.approveDisruptive === true;
+      const chosen = RemediationSynthesizer.generateCombinedPatch(
+        audit.findings,
+        hclContent,
+        (ruleId) => approveDisruptive || !assessChangeRisk(ruleId).requiresApproval
+      );
+      const shippedPlan = buildChangePlan(chosen.ruleIds);
+      const shipped = [...shippedPlan.safeToShip, ...shippedPlan.needsApproval];
+      const heldBack = approveDisruptive ? [] : plan.needsApproval;
+
+      // Verify: re-audit the patched manifest and count what is left for the rules this PR claims to fix.
+      const shippedSet = new Set(chosen.ruleIds);
+      const after = WellArchitectedEngine.audit(IaCParser.parse(chosen.patchedContent));
+      const verification = {
+        findingsBefore: audit.findings.filter((f) => shippedSet.has(f.ruleId)).length,
+        findingsAfter: after.findings.filter((f) => shippedSet.has(f.ruleId)).length,
+        totalFindingsAfter: after.violationsCount
+      };
+      const monthly = Math.round(audit.findings.filter((f) => shippedSet.has(f.ruleId)).reduce((a, f) => a + f.monthlySavingsUSD, 0) * 100) / 100;
+
+      const brief = await this.bedrockAgent.writeChangeBrief({
+        shippedRisks: shipped,
+        heldBackRisks: heldBack,
+        monthlySavingsUSD: monthly,
+        verification
+      });
+      const prResult = await openRemediationPr(chosen.diff, fetch, {
+        title: brief.title,
+        body: brief.markdown,
+        ...(args.branchName ? { head: String(args.branchName) } : {})
+      });
       return {
         prMode: prResult.mode,
         prUrl: prResult.url,
-        branch: args.branchName || prResult.draft.head,
+        branch: prResult.draft.head,
         title: prResult.draft.title,
-        patchesIncluded: combined.patchCount,
-        rulesRemediated: combined.ruleIds,
-        monthlySavingsUnlockedUSD: audit.totalMonthlySavingsUSD,
-        annualSavingsUnlockedUSD: annualSavings,
-        combinedDiff
+        patchesIncluded: chosen.patchCount,
+        rulesRemediated: chosen.ruleIds,
+        approvedDisruptive: approveDisruptive,
+        heldBackForApproval: heldBack,
+        approvalRequired: heldBack.length > 0,
+        shippedRisks: shipped,
+        verification,
+        prDescription: brief.markdown,
+        prDescriptionSource: brief.narrativeSource,
+        prDescriptionLatencyMs: brief.latencyMs,
+        monthlySavingsUnlockedUSD: monthly,
+        annualSavingsUnlockedUSD: Math.round(monthly * 12 * 100) / 100,
+        combinedDiff: chosen.diff
       };
     }
 
@@ -561,8 +722,62 @@ export class AlexaMcpServer {
    */
   async handleAlexaUtterance(utterance: string, hclContent: string, extra: { transcript?: string } = {}): Promise<AlexaVoiceResponse> {
     const lower = utterance.toLowerCase();
+    const has = (...words: string[]) => words.some((w) => new RegExp(`\\b${w}\\b`).test(lower));
+    const manifestKey = createHash('sha256').update(hclContent).digest('hex');
 
-    if (lower.includes('bee') || lower.includes('wearable') || lower.includes('meeting') || lower.includes('standup') || lower.includes('transcript')) {
+    // 1. Human approval of disruptive changes. Deliberately strict: a question that merely contains
+    //    "confirm" or "yes" must never replace a database.
+    if (isApprovalUtterance(lower)) {
+      if (!this.pendingApprovals.has(manifestKey)) {
+        // Nothing has been explained to the user for this manifest yet: explain first, ship nothing.
+        const data = await this.callTool('assess_change_risk', { hclContent });
+        const waiting = (data.needsApproval as ChangeRisk[]) || [];
+        if (waiting.length) this.pendingApprovals.add(manifestKey);
+        return {
+          utterance,
+          matchedIntent: 'AssessChangeRisk',
+          mcpMethodCalled: 'tools/call',
+          mcpToolName: 'assess_change_risk',
+          spokenSpeech: waiting.length
+            ? `Before I approve anything, here is what it would do. ${String(data.spokenSummary)} Say "approve" again to include ${waiting.length === 1 ? 'it' : 'them'}.`
+            : 'There is nothing waiting for your approval. Every available fix is safe to ship. Say "fix it" to open the pull request.',
+          cardTitle: waiting.length ? 'Review Before Approving' : 'Nothing to Approve',
+          data
+        };
+      }
+      this.pendingApprovals.delete(manifestKey);
+      const data = await this.callTool('ship_github_remediation_pr', { hclContent, approveDisruptive: true });
+      const hasSnapshotGuard = ((data.shippedRisks as ChangeRisk[]) || []).some((r) => r.guardsAdded.some((g) => g.startsWith('final_snapshot_identifier')));
+      const v = data.verification as { findingsBefore: number; findingsAfter: number };
+      const speech = `Approved. The pull request now includes all ${plural(Number(data.patchesIncluded), 'fix', 'fixes')}, including the database replacement${hasSnapshotGuard ? ', guarded by a final snapshot taken before the old database is deleted' : ''}. I re-scanned the patched code: ${v.findingsBefore} issues down to ${v.findingsAfter}. Please schedule a maintenance window before merging.`;
+      return {
+        utterance,
+        matchedIntent: 'ApproveDisruptiveChanges',
+        mcpMethodCalled: 'tools/call',
+        mcpToolName: 'ship_github_remediation_pr',
+        spokenSpeech: speech,
+        cardTitle: 'Approved: Full Remediation PR (with safety guards)',
+        data
+      };
+    }
+
+    // 2. Blast-radius questions ("is it safe?", "what's the risk?", "what happens if...").
+    const asksShip = has('ship', 'pr') || lower.includes('pull request');
+    if (!asksShip && (has('risk', 'risky', 'safe', 'blast', 'downtime', 'break') || lower.includes('what happens'))) {
+      const data = await this.callTool('assess_change_risk', { hclContent });
+      if (((data.needsApproval as ChangeRisk[]) || []).length) this.pendingApprovals.add(manifestKey);
+      return {
+        utterance,
+        matchedIntent: 'AssessChangeRisk',
+        mcpMethodCalled: 'tools/call',
+        mcpToolName: 'assess_change_risk',
+        spokenSpeech: String(data.spokenSummary),
+        cardTitle: 'Blast-Radius Assessment',
+        data
+      };
+    }
+
+    if (has('bee') || lower.includes('wearable') || lower.includes('meeting') || lower.includes('standup') || lower.includes('transcript')) {
       const data = await this.callTool('ingest_bee_meeting_transcript', {
         hclContent,
         transcript: extra.transcript || SAMPLE_BEE_TRANSCRIPT
@@ -580,7 +795,7 @@ export class AlexaMcpServer {
       };
     }
 
-    if (lower.includes('fire tv') || lower.includes('firetv') || lower.includes('wallboard') || lower.includes('war room') || lower.includes('tv')) {
+    if (lower.includes('fire tv') || lower.includes('firetv') || lower.includes('wallboard') || lower.includes('war room') || has('tv')) {
       const data = await this.callTool('get_firetv_wallboard_state', { hclContent });
       const kpis = data.kpis as Record<string, unknown>;
       const speech = `Launching Fire TV 10-foot Engineering War-Room mode. Displaying ${plural(Number(kpis.activeViolations), 'active Well-Architected finding', 'active Well-Architected findings')} and ${usd(Number(kpis.annualSavingsUSD))} in annual FinOps savings. Use your Fire TV remote left and right directional buttons to inspect each tile and press Select to view the patch.`;
@@ -598,17 +813,24 @@ export class AlexaMcpServer {
     if (lower.includes('ship') || lower.includes('pull request') || lower.includes('open a pr') || lower.includes('patch') || lower.includes('fix')) {
       const data = await this.callTool('ship_github_remediation_pr', { hclContent });
       const fixed = describeFixes((data.rulesRemediated as string[]) || []);
+      const v = data.verification as { findingsBefore: number; findingsAfter: number };
+      const heldBack = (data.heldBackForApproval as ChangeRisk[]) || [];
+      if (heldBack.length) this.pendingApprovals.add(manifestKey);
       const prPhrase = data.prMode === 'live' && data.prUrl
-        ? `I opened the GitHub pull request at ${data.prUrl}.`
-        : `The pull request is staged as a dry run on branch ${data.branch}.`;
-      const speech = `Done! I combined ${plural(Number(data.patchesIncluded), 'Terraform fix', 'Terraform fixes')} into one patch${fixed ? `—${fixed}` : ''}${Number(data.annualSavingsUnlockedUSD) > 0 ? `, unlocking ${usd(Number(data.annualSavingsUnlockedUSD))} per year in savings` : ''}. ${prPhrase}`;
+        ? `I opened a pull request at ${data.prUrl}`
+        : `I staged a pull request on branch ${data.branch}`;
+      const savings = Number(data.monthlySavingsUnlockedUSD) > 0 ? `, saving ${usd(Number(data.monthlySavingsUnlockedUSD))} a month` : '';
+      const held = heldBack.length
+        ? ` I held back ${plural(heldBack.length, 'change', 'changes')} that ${heldBack.length === 1 ? 'needs' : 'need'} your approval: ${describeRisks(heldBack)}. I've added a final-snapshot guard, but it means downtime. Say "approve" to include ${heldBack.length === 1 ? 'it' : 'them'}.`
+        : '';
+      const speech = `${prPhrase} with ${plural(Number(data.patchesIncluded), 'safe fix', 'safe fixes')}${fixed ? `: ${fixed}` : ''}${savings}. I re-scanned the patched code: ${v.findingsBefore} issues down to ${v.findingsAfter}.${held}`;
       return {
         utterance,
         matchedIntent: 'SynthesizeAndShipPR',
         mcpMethodCalled: 'tools/call',
         mcpToolName: 'ship_github_remediation_pr',
         spokenSpeech: speech,
-        cardTitle: 'Alexa+ MCP Action: Unified Git Patch & Pull Request Staged',
+        cardTitle: heldBack.length ? 'Safe Fixes Staged · Approval Needed' : 'Pull Request Staged',
         data
       };
     }
@@ -631,6 +853,8 @@ export class AlexaMcpServer {
 
     // Default: Morning Cloud Briefing
     const data = await this.callTool('get_morning_cloud_briefing', { hclContent });
+    const briefPlan = data.changePlan as { needsApproval?: ChangeRisk[] } | undefined;
+    if (briefPlan?.needsApproval?.length) this.pendingApprovals.add(manifestKey);
     return {
       utterance,
       matchedIntent: 'MorningCloudBriefing',

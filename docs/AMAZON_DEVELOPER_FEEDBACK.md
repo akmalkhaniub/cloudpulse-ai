@@ -11,7 +11,7 @@ This document fulfills the **"Shape"** pillar of the Amazon Developer Hackathon 
 ## 1. Alexa+ Track: Self-Hosted Model Context Protocol (MCP) Server Integration
 
 ### 🔍 What We Built
-We implemented a JSON-RPC 2.0 Model Context Protocol server (`src/alexa_mcp_server.ts` exposed at `/api/mcp`) with 6 tools (`get_morning_cloud_briefing`, `audit_iac_manifest`, `synthesize_remediation_diff`, `ship_github_remediation_pr`, `ingest_bee_meeting_transcript`, `get_firetv_wallboard_state`) and a web-based Alexa+ Voice Simulator (`/api/alexa`) with browser microphone Speech-to-Text (`SpeechRecognition`) and Text-to-Speech (`speechSynthesis`).
+We implemented a JSON-RPC 2.0 Model Context Protocol server (`src/alexa_mcp_server.ts` exposed at `/api/mcp`) with 7 tools (`get_morning_cloud_briefing`, `audit_iac_manifest`, `synthesize_remediation_diff`, `assess_change_risk`, `ship_github_remediation_pr`, `ingest_bee_meeting_transcript`, `get_firetv_wallboard_state`) and a web-based Alexa+ Voice Simulator (`/api/alexa`) with browser microphone Speech-to-Text (`SpeechRecognition`) and Text-to-Speech (`speechSynthesis`).
 
 ### ⚠️ Developer Friction Encountered
 1. **Schema Translation Between MCP and Bedrock Converse:**
@@ -21,7 +21,13 @@ We implemented a JSON-RPC 2.0 Model Context Protocol server (`src/alexa_mcp_serv
 3. **Testing Gated Alexa+ Agent Skills Locally:**
    - Because the Alexa+ Developer Console simulator is currently gated to preview partners, independent builders have no official CLI tool to validate how Alexa+ ranks and selects among multiple MCP tools based on natural-language utterances.
 
+3. **No standard way to ask "are you sure?" by voice:**
+   - MCP has `destructiveHint` / `readOnlyHint` annotations, but nothing tells a voice host how to run a confirmation turn. We built our own approval loop ("Fix it" ships safe fixes, "approve" includes the disruptive one, via an `approveDisruptive` argument). Every developer will reinvent this differently.
+4. **Our own UI hid protocol bugs that a real client found in minutes:**
+   - Running the official MCP Inspector against our server exposed a top-level `_meta` field on JSON-RPC responses (rejected by the SDK's schema) and tool outputs that didn't match their declared `outputSchema`. An Alexa+-specific conformance checker would catch this before submission.
+
 ### 💡 Actionable Recommendations for the Alexa+ Engineering Team
+* **First-class confirmation for risky tools:** let an MCP server mark a call as needing confirmation (with a short spoken reason, e.g. "this replaces your database"), and have Alexa+ run the yes/no turn and re-call the tool with the approval flag. Consistent across skills, and auditable.
 * **Ship `@amazon-alexa/mcp-bedrock-bridge`:** Provide a lightweight open-source TypeScript/Python adapter that converts any standard MCP `tools/list` response directly into a Bedrock `ConverseCommand` `toolConfig` and generates Alexa+ intent/slot samples automatically.
 * **Progressive Voice Ack Hook (`mcp/progress`):** Support an intermediate spoken acknowledgment token in the Alexa+ MCP spec (e.g., *"Scanning your 3 Terraform resources now..."*) while the long-running MCP `tools/call` resolves.
 * **Release an Offline `alexa-mcp-doctor` CLI:** A local conformance runner that fires test utterances and JSON-RPC 2.0 `initialize` / `tools/list` / `tools/call` probes against `http://localhost:<port>/api/mcp` and validates schema compliance before cloud deployment.

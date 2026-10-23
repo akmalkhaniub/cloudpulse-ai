@@ -5,7 +5,8 @@
  * existing attribute in place instead of duplicating it, and are rendered with an
  * LCS-based line diff so only the lines that actually change are marked.
  */
-import { RIGHTSIZE_TARGET } from './well_architected_engine.js';
+import { rightsizeTarget } from './well_architected_engine.js';
+import { assessChangeRisk, type ChangeRisk } from './change_safety.js';
 
 export interface FindingLike {
   ruleId: string;
@@ -19,6 +20,8 @@ export interface RemediationPatch {
   description: string;
   /** false when the rule has no safe automatic fix (e.g. deleting an orphaned volume). */
   autoFixable: boolean;
+  /** What happens when this fix is applied, and what a human must confirm. */
+  risk: ChangeRisk;
   diff: string;
   patchedContent: string;
 }
@@ -73,7 +76,11 @@ function setAttribute(source: string, block: BlockSpan, attr: string, value: str
     // Align '=' with the block's existing top-level attributes (terraform fmt style).
     const keyWidths = [...body.matchAll(new RegExp(`^${indent}([A-Za-z_][A-Za-z0-9_]*)(\\s*)=`, 'gm'))]
       .map((mm) => mm[1].length + mm[2].length);
-    const width = Math.max(attr.length + 1, ...keyWidths);
+    // Use the block's most common alignment column, so one long key doesn't push everything right.
+    const counts = new Map<number, number>();
+    for (const w of keyWidths) counts.set(w, (counts.get(w) ?? 0) + 1);
+    const common = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]?.[0] ?? 0;
+    const width = Math.max(attr.length + 1, common);
     const line = `${indent}${attr.padEnd(width)}= ${value}\n`;
     newBody = body.endsWith('\n') ? body + line : `${body}\n${line}`;
   }
@@ -90,39 +97,63 @@ export class RemediationSynthesizer {
   static applyFix(finding: FindingLike, source: string): { patched: string; description: string; autoFixable: boolean } {
     switch (finding.ruleId) {
       case 'SEC_OPEN_SSH_INGRESS': {
+        // Use the VPC CIDR declared in the same manifest when there is one; otherwise a clearly marked placeholder.
+        const vpcCidr = /resource\s+"aws_vpc"\s+"[^"]+"\s*\{[^}]*?cidr_block\s*=\s*"([0-9./]+)"/.exec(source)?.[1];
+        const replacement = vpcCidr
+          ? `["${vpcCidr}"] # Restricted to this stack's VPC CIDR`
+          : '["10.0.0.0/16"] # TODO: set to your VPN or bastion CIDR';
         const patched = withBlock(source, finding, 'aws_security_group', (b) => {
           const body = source.slice(b.bodyStart, b.end).replace(
             /cidr_blocks(\s*)=\s*\["0\.0\.0\.0\/0"\]/g,
-            'cidr_blocks$1= ["10.0.0.0/16"] # Restricted to corporate VPC CIDR'
+            `cidr_blocks$1= ${replacement}`
           );
           return source.slice(0, b.bodyStart) + body + source.slice(b.end);
         });
-        return { patched, autoFixable: true, description: 'Restricted administrative SSH/RDP ingress from 0.0.0.0/0 to the internal VPC CIDR.' };
+        return {
+          patched,
+          autoFixable: true,
+          description: vpcCidr
+            ? `Restricted SSH/RDP ingress from 0.0.0.0/0 to the VPC CIDR ${vpcCidr} found in this manifest.`
+            : 'Restricted SSH/RDP ingress from 0.0.0.0/0 to a placeholder private CIDR (no aws_vpc found to infer from).'
+        };
       }
       case 'SEC_UNENCRYPTED_DB': {
+        const dbName = finding.resourceId?.split('.')[1] ?? 'db';
         let patched = withBlock(source, finding, 'aws_db_instance', (b) => setAttribute(source, b, 'storage_encrypted', 'true'));
-        if (!/kms_key_id\s*=/.test(findBody(patched, finding, 'aws_db_instance'))) {
-          patched = withBlock(patched, finding, 'aws_db_instance', (b) => setAttribute(patched, b, 'kms_key_id', '"alias/aws/rds"'));
-        }
-        return { patched, autoFixable: true, description: 'Enabled KMS at-rest storage encryption on the RDS instance (requires snapshot-restore for existing instances).' };
+        const set = (attr: string, value: string, onlyIfMissing = false) => {
+          if (onlyIfMissing && new RegExp(`\\b${attr}\\s*=`).test(findBody(patched, finding, 'aws_db_instance'))) return;
+          patched = withBlock(patched, finding, 'aws_db_instance', (b) => setAttribute(patched, b, attr, value));
+        };
+        set('kms_key_id', '"alias/aws/rds"', true);
+        // Safety guard: this change replaces the database, so make Terraform snapshot it before deleting it.
+        set('skip_final_snapshot', 'false');
+        set('final_snapshot_identifier', `"${dbName}-pre-encryption"`);
+        return { patched, autoFixable: true, description: 'Enabled KMS at-rest encryption on RDS, with a final-snapshot guard because this change replaces the database.' };
       }
       case 'REL_NO_MULTI_AZ_DB': {
-        const patched = withBlock(source, finding, 'aws_db_instance', (b) => setAttribute(source, b, 'multi_az', 'true'));
-        return { patched, autoFixable: true, description: 'Enabled a Multi-AZ standby for the RDS instance.' };
+        let patched = withBlock(source, finding, 'aws_db_instance', (b) => setAttribute(source, b, 'multi_az', 'true'));
+        if (!/\bapply_immediately\s*=/.test(findBody(patched, finding, 'aws_db_instance'))) {
+          patched = withBlock(patched, finding, 'aws_db_instance', (b) => setAttribute(patched, b, 'apply_immediately', 'false'));
+        }
+        return { patched, autoFixable: true, description: 'Enabled a Multi-AZ standby for RDS, deferred to the maintenance window.' };
       }
       case 'SEC_UNENCRYPTED_EBS': {
         const patched = withBlock(source, finding, 'aws_ebs_volume', (b) => setAttribute(source, b, 'encrypted', 'true'));
         return { patched, autoFixable: true, description: 'Enabled at-rest encryption on the EBS volume.' };
       }
       case 'COST_OVERPROVISIONED_EC2': {
+        let target = '';
         const patched = withBlock(source, finding, 'aws_instance', (b) => {
           const body = source.slice(b.bodyStart, b.end).replace(
-            /instance_type(\s*)=\s*"[a-z0-9]+\.(?:4|8)xlarge"/,
-            `instance_type$1= "${RIGHTSIZE_TARGET}" # Rightsized using the local us-east-1 price table`
+            /instance_type(\s*)=\s*"([a-z0-9]+\.(?:4|8)xlarge)"/,
+            (m, pad: string, current: string) => {
+              target = rightsizeTarget(current) ?? '';
+              return target ? `instance_type${pad}= "${target}" # Same x86 family, so the current AMI still boots` : m;
+            }
           );
           return source.slice(0, b.bodyStart) + body + source.slice(b.end);
         });
-        return { patched, autoFixable: true, description: `Rightsized the over-provisioned instance to ${RIGHTSIZE_TARGET}.` };
+        return { patched, autoFixable: Boolean(target), description: target ? `Rightsized the instance to ${target} within the same CPU family.` : 'No known rightsizing target for this instance type.' };
       }
       default:
         return { patched: source, autoFixable: false, description: 'No safe automatic fix; flagged for manual review.' };
@@ -138,16 +169,22 @@ export class RemediationSynthesizer {
       resourceId: finding.resourceId,
       description,
       autoFixable: autoFixable && changed,
+      risk: assessChangeRisk(finding.ruleId),
       diff: changed ? this.createUnifiedDiff(originalSource, patched) : '',
       patchedContent: patched
     };
   }
 
   /** Apply every auto-fixable finding in sequence and return ONE applicable unified diff. */
-  static generateCombinedPatch(findings: FindingLike[], originalSource: string): CombinedRemediation {
+  static generateCombinedPatch(
+    findings: FindingLike[],
+    originalSource: string,
+    include: (ruleId: string) => boolean = () => true
+  ): CombinedRemediation {
     let current = originalSource;
     const ruleIds: string[] = [];
     for (const f of findings) {
+      if (!include(f.ruleId)) continue;
       const { patched } = this.applyFix(f, current);
       if (patched !== current) {
         ruleIds.push(f.ruleId);

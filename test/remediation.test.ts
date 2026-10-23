@@ -33,8 +33,8 @@ const db = findings.find((f) => f.ruleId === 'SEC_UNENCRYPTED_DB')!;
 const dbPatch = RemediationSynthesizer.generatePatch(db, HCL);
 ok('RDS encryption flips the existing attribute instead of duplicating it',
   (dbPatch.patchedContent.match(/storage_encrypted/g) || []).length === 1 && /storage_encrypted\s*= true/.test(dbPatch.patchedContent));
-ok('RDS diff only marks changed lines (no realignment noise)',
-  dbPatch.diff.split('\n').filter((l) => /^[-+](?![-+])/.test(l)).length === 3);
+ok('RDS diff only marks changed lines (1 flipped + kms key + 2 snapshot guards)',
+  dbPatch.diff.split('\n').filter((l) => /^[-+](?![-+])/.test(l)).length === 5);
 
 const multiAz = RemediationSynthesizer.generatePatch(findings.find((f) => f.ruleId === 'REL_NO_MULTI_AZ_DB')!, HCL);
 ok('Multi-AZ finding produces a real patch', multiAz.autoFixable && /multi_az\s*= true/.test(multiAz.patchedContent));

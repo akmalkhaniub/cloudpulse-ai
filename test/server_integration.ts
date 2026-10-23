@@ -44,8 +44,21 @@ try {
 
   console.log('\n5️⃣ Alexa+ MCP Server (/api/mcp • Spec 2026-07-28), Bee Wearable (/api/bee/ingest), & Fire TV (/api/firetv/wallboard)...');
   const mcpInfo = await get('/api/mcp');
-  ok('GET /api/mcp returns 6 registered MCP tools & protocolVersion 2026-07-28', mcpInfo.status === 200 && mcpInfo.body.tools.length === 6 && mcpInfo.body.serverInfo.protocolVersion === '2026-07-28');
-  ok('All 6 MCP tools include MCP 2026-07-28 title, outputSchema (JSON Schema 2020-12), and annotations', mcpInfo.body.tools.every((t: any) => t.title && t.outputSchema?.$schema === 'https://json-schema.org/draft/2020-12/schema' && t.annotations));
+  ok('GET /api/mcp returns 7 registered MCP tools & protocolVersion 2026-07-28', mcpInfo.status === 200 && mcpInfo.body.tools.length === 7 && mcpInfo.body.serverInfo.protocolVersion === '2026-07-28');
+  ok('All 7 MCP tools include MCP 2026-07-28 title, outputSchema (JSON Schema 2020-12), and annotations', mcpInfo.body.tools.every((t: any) => t.title && t.outputSchema?.$schema === 'https://json-schema.org/draft/2020-12/schema' && t.annotations));
+
+  // Every tool's real output must satisfy its declared outputSchema (strict MCP clients validate this).
+  const typeOf = (v: unknown) => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v);
+  let schemaOk = true;
+  for (const t of mcpInfo.body.tools) {
+    const r = await post('/api/mcp', { jsonrpc: '2.0', id: t.name, method: 'tools/call', params: { name: t.name, arguments: { hclContent: HCL } } });
+    const out = r.body.result?.structuredContent || {};
+    for (const k of t.outputSchema.required) {
+      const allowed = [].concat(t.outputSchema.properties[k].type);
+      if (!(k in out) || !allowed.includes(typeOf(out[k]) as never)) { schemaOk = false; console.log(`   ✗ ${t.name}.${k}`); }
+    }
+  }
+  ok('every tool result matches its declared outputSchema', schemaOk);
 
   const rpcInit = await post('/api/mcp', {
     jsonrpc: '2.0',
@@ -53,7 +66,7 @@ try {
     method: 'initialize',
     _meta: { 'io.modelcontextprotocol/protocolVersion': '2026-07-28' }
   });
-  ok('MCP JSON-RPC initialize returns serverInfo & _meta protocolVersion 2026-07-28', rpcInit.status === 200 && rpcInit.body.result.serverInfo.name === 'cloudpulse-alexa-plus-mcp' && rpcInit.body._meta['io.modelcontextprotocol/protocolVersion'] === '2026-07-28');
+  ok('MCP JSON-RPC initialize returns serverInfo & _meta protocolVersion 2026-07-28', rpcInit.status === 200 && rpcInit.body.result.serverInfo.name === 'cloudpulse-alexa-plus-mcp' && rpcInit.body.result._meta['io.modelcontextprotocol/protocolVersion'] === '2026-07-28');
 
   const rpcBadVer = await post('/api/mcp', {
     jsonrpc: '2.0',
@@ -77,6 +90,14 @@ try {
 
   const alexaShip = await post('/api/alexa', { utterance: 'Alexa, fix all violations and ship a pull request', hclContent: HCL });
   ok('POST /api/alexa routes PR shipping utterance', alexaShip.status === 200 && alexaShip.body.matchedIntent === 'SynthesizeAndShipPR');
+
+  const DB_HCL = HCL + '\n\nresource "aws_db_instance" "app_db" {\n  engine            = "postgres"\n  storage_encrypted = false\n}';
+  const shipSafe = await post('/api/alexa', { utterance: 'Alexa, fix it', hclContent: DB_HCL });
+  ok('"fix it" holds the database replacement back for approval', shipSafe.body.data.approvalRequired === true && !shipSafe.body.data.rulesRemediated.includes('SEC_UNENCRYPTED_DB') && /approve/i.test(shipSafe.body.spokenSpeech));
+  const approve = await post('/api/alexa', { utterance: 'Alexa, approve the database change', hclContent: DB_HCL });
+  ok('"approve" ships the held-back change with its snapshot guard', approve.body.matchedIntent === 'ApproveDisruptiveChanges' && approve.body.data.rulesRemediated.includes('SEC_UNENCRYPTED_DB') && approve.body.data.combinedDiff.includes('final_snapshot_identifier'));
+  const risk = await post('/api/alexa', { utterance: 'Alexa, is it safe to fix everything?', hclContent: DB_HCL });
+  ok('risk questions route to assess_change_risk', risk.body.matchedIntent === 'AssessChangeRisk' && risk.body.data.needsApproval.length === 1);
 
   const beeSync = await post('/api/bee/ingest', { hclContent: HCL });
   ok('POST /api/bee/ingest extracts standup action items and cross-verifies against Terraform AST', beeSync.status === 200 && beeSync.body.extractedActionItems.length >= 3 && beeSync.body.verifiedInTerraformCount >= 1);

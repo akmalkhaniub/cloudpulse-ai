@@ -31,8 +31,12 @@ export function buildRemediationDraft(patch: string, opts: Partial<PullRequestDr
   };
 }
 
-export async function openRemediationPr(patch: string, fetchImpl: typeof fetch = fetch): Promise<PullRequestResult> {
-  const draft = buildRemediationDraft(patch);
+export async function openRemediationPr(
+  patch: string,
+  fetchImpl: typeof fetch = fetch,
+  opts: Partial<PullRequestDraft> = {}
+): Promise<PullRequestResult> {
+  const draft = buildRemediationDraft(patch, opts);
   const token = process.env.GITHUB_TOKEN;
   if (!token) return { mode: 'dry-run', url: null, draft };
 
