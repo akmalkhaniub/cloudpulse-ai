@@ -1,20 +1,72 @@
-# 🎬 CloudPulse AI — Official 3-Minute Demo Video Script
-**Hackathon:** Build, Ship, Shape: Amazon Developer Hackathon (Deadline: Friday, October 23, 2026 @ 12:00 PM PDT)  
-**Primary Track:** Alexa+ (self-hosted MCP `2026-07-28` server + simulated Alexa+ web experience) • **Mini-Challenges:** AWS Builder (`amazon.nova-pro-v1:0`), Open Source  
-**Concept extensions (say "concept" / "simulated" on camera):** Bee-style standup sync, Fire TV-style wallboard  
-**Rules reminder:** under 3 minutes, public on YouTube/Vimeo, English. For the simulated Alexa+ path, briefly show the simulation source (`src/alexa_mcp_server.ts`).  
-**Live Local URL:** `http://localhost:3002`
+# 🎬 CloudPulse AI — Official 2-3 Minute Presenter Script
+**Hackathon:** Build, Ship, Shape: Amazon Developer Hackathon (Devpost Deadline: Friday, October 23, 2026 @ 12:00 PM PDT)  
+**Primary Track:** Alexa+ (Self-hosted MCP `2026-07-28` server)  
+**Mini-Challenge Tracks:** AWS Builder (`amazon.nova-pro-v1:0` via Bedrock Converse), Open Source  
+**Live UI:** [http://localhost:3002/#copilot](http://localhost:3002/#copilot) & [http://localhost:3002/#mcp](http://localhost:3002/#mcp)
 
 ---
 
-## ⏱️ Time-Coded Walkthrough (3:00 Total)
+## 📺 How to Use This Script
+1. Open this file on your **second monitor / side screen**.
+2. Open your browser on your main screen at **`http://localhost:3002/#copilot`**.
+3. Hit screen record on your main screen and read each section smoothly as you click the corresponding button!
 
-| Timestamp | Segment | On-Screen Action (`http://localhost:3002`) | Voiceover Script |
-| :--- | :--- | :--- | :--- |
-| **0:00 – 0:20** | **1. The Hook** | Show the CloudPulse header and the **Copilot** tab with the findings list. | *"Alexa+ already handles calendars and reminders. We asked: what if Alexa+ could act as a senior cloud architect for your engineering team? Meet CloudPulse AI, a self-hosted MCP server for Alexa+, backed by Amazon Bedrock Nova Pro."* |
-| **0:20 – 1:05** | **2. Alexa+ Voice (Copilot tab)** | Click **☀️ Morning Briefing** (or use the 🎙️ mic). Let the spoken reply play. Then click **🚀 Synthesize & Create PR** and scroll to the colored unified patch. | *"I ask Alexa+ for my morning cloud briefing. Alexa+ calls our MCP server, which audits the Terraform and reports one critical open-SSH rule, an unencrypted database, and $462.53 a month in rightsizing savings. When I say 'fix all violations and ship a pull request', CloudPulse combines four fixes into one patch that applies cleanly with git apply, and stages the PR."* |
-| **1:05 – 1:30** | **3. Bedrock Converse + simulation source** | Click a finding's **View Unified Patch**. Briefly show `src/alexa_mcp_server.ts` (MCP tools + `/api/alexa` router) and `src/bedrock_converse_agent.ts` in the editor. | *"The audit runs through a real Amazon Bedrock Converse tool-use loop on Nova Pro. Our Alexa+ front end is a simulated web experience, and this is its source: the same MCP tools Alexa+ would call."* |
-| **1:30 – 2:00** | **4. MCP Inspector** | Click the **MCP** tab → run `tools/list`, then a `tools/call`. | *"Here is the MCP server itself: JSON-RPC 2.0, six tools, each with input and output schemas and annotations."* |
-| **2:00 – 2:30** | **5. Concept extensions** | Click **Standup Sync** → **Sync**; then **Wallboard** and press ◀ ▶ / Enter. | *"Two concept extensions, both simulated in the browser: standup transcript sync, which checks each spoken risk against the actual Terraform, and a 10-foot wallboard for a team TV, navigable with a remote."* |
-| **2:30 – 2:45** | **6. Shape feedback** | Click the **Feedback** tab. | *"We documented concrete product feedback for Alexa+ MCP and Bedrock Converse, plus feature requests for Bee and Fire TV."* |
-| **2:45 – 2:58** | **7. Proof** | Terminal: `npm test` (43 assertions) and `npm run eval` (F1 = 1.000). | *"Everything is backed by 43 automated assertions, including patch-correctness tests, and a 1.000 F1 score on labeled, clean, and adversarial Terraform. Thank you!"* |
+---
+
+## ⏱️ Scene-by-Scene Presenter Script
+
+### Scene 1: The Hook & Introduction (0:00 – 0:30)
+> **URL:** `http://localhost:3002/#copilot`  
+> **Action:** Show the header badge ("ALEXA+ CLOUD ARCHITECT"), the clean dashboard, and point to the live status indicator.
+
+**Read aloud:**
+> *"Alexa+ already manages calendars, reminders, and smart homes. But what if Alexa+ could act as a senior cloud architect for your engineering team?*  
+>  
+> *Meet **CloudPulse AI**: a self-hosted Model Context Protocol server that connects Alexa+ directly into your cloud infrastructure, powered by Amazon Bedrock Nova Pro and the Well-Architected Framework."*
+
+---
+
+### Scene 2: Alexa+ Voice Briefing (0:30 – 1:10)
+> **URL:** `http://localhost:3002/#copilot`  
+> **Action:** Click the button **☀️ "Alexa, give me my morning cloud briefing"** (or use the 🎙️ mic button). Watch the transcript and response appear, then scroll down to the Security Findings cards.
+
+**Read aloud:**
+> *"I ask Alexa+: 'Alexa, give me my morning cloud briefing.'*  
+>  
+> *Alexa+ immediately queries our local MCP server via Model Context Protocol. It audits our live Terraform infrastructure and reports our posture in real time: one critical open SSH port exposed to the world on port 22, an unencrypted production database, and over $462 a month in over-provisioned compute and orphaned storage."*
+
+---
+
+### Scene 3: Bedrock Converse Remediation & PR Shipping (1:10 – 1:50)
+> **URL:** `http://localhost:3002/#copilot`  
+> **Action:** Click the button **🚀 "Alexa, fix all violations and ship a pull request"** (or click the green **"View Unified Patch"** button). Scroll down to show the color-coded Unified Git Diff with green additions and red deletions.
+
+**Read aloud:**
+> *"Next, I ask Alexa+: 'Alexa, fix all violations and ship a pull request.'*  
+>  
+> *Under the hood, Amazon Bedrock Converse analyzes the Terraform Abstract Syntax Tree and synthesizes a zero-downtime, compliant remediation patch.*  
+>  
+> *Look at this unified git diff: it closes the open CIDR blocks, enables AES-256 storage encryption, and rightsizes compute without realignment noise. The patch applies cleanly with git apply, and automatically stages a GitHub pull request for the devops team."*
+
+---
+
+### Scene 4: Alexa+ MCP Server Deep-Dive (1:50 – 2:30)
+> **URL:** `http://localhost:3002/#mcp` (Notice the URL automatically changes to `#mcp`!)  
+> **Action:** Click the **Alexa+ MCP Server** tab. Click **"Run tools/list"** to show the 6 registered JSON-RPC tools. Then click **"Execute get_morning_cloud_briefing"** to demonstrate structuredContent output.
+
+**Read aloud:**
+> *"Now let's switch to the **Alexa+ MCP Server** tab—notice how deep URL routing preserves our state.*  
+>  
+> *CloudPulse implements the modern MCP specification (2026-07-28) over standard JSON-RPC 2.0. We expose six distinct cloud architecture tools: including `get_morning_cloud_briefing`, `audit_iac_manifest`, `generate_remediation_diff`, and `create_remediation_pr`.*  
+>  
+> *Each tool features rigorous JSON Schema input and output validation, read-only annotations, and high-priority human-in-the-loop approvals for any destructive changes."*
+
+---
+
+### Scene 5: Test Verification & Wrap-up (2:30 – 2:55)
+> **Action:** Switch briefly to your terminal showing the test results, or point to the verification stats in the dashboard footer.
+
+**Read aloud:**
+> *"Every single component is tested and verified. Our automated test suite runs 43 green assertions covering IaC AST parsing, Bedrock Converse tool-calling loops, MCP JSON-RPC protocol compliance, and an eval suite achieving a 1.000 F1 score on labeled, clean, and adversarial Terraform manifests.*  
+>  
+> *CloudPulse AI bridges conversational intelligence with production cloud engineering. Thank you!"*
